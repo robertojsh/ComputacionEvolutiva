@@ -1,0 +1,231 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <script src="https://cdn.plot.ly/plotly-2.9.0.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.9.0.min.js"></script>
+    <script src="functions.js"></script>
+    <script src="ga.js"></script>
+    <style>
+        .formulas {
+            height: 100px;
+        }
+
+        .formulas input,
+        .formulas img {
+            vertical-align: middle;
+        }
+    </style>
+
+</head>
+
+<body>
+    <!-- Header-->
+    <div style="padding-bottom: 15px;display: block;">
+        <h2 style="color: darkgray;">Tarea 2 - Genetic Algorithm</h2>
+        <h3 style="color: darkgray;">A00000000 - Luis Eduardo Siordia</h3>
+        <h3 style="color: darkgray;">A00354886 - Roberto Julio Saldana</h3>
+    </div>
+
+    <!--Controls-->
+    <div style="display: block;height: 350px;">
+        <div style="padding-right: 75px; float: left;border-right: .1em dashed gray">
+            <h3>Functions</h3>
+            <div class="formulas">
+                <input type="radio" name="function" value="1">
+                <img src="resources/f1.png" />
+            </div>
+
+            <div class="formulas">
+                <input type="radio" name="function" value="2" onchange="getGA">
+                <img src="resources/f2.png" />
+            </div>
+
+            <div class="formulas">
+                <input type="radio" name="function" value="3" onchange="getGA">
+                <img src="resources/f3.png" />
+            </div>
+        </div>
+        <div style="float:left;padding-top: 4px;padding-left: 15px;">
+            <h3>Functions</h3>
+            <div style="display: block;margin-bottom: 3px;">N: <input id="txtPopulation" type="text"
+                    style="width: 50px;" /> </div>
+            <div style="display: block;margin-bottom: 3px;">xl: <input id="txtxl1" type="text" style="width: 30px;" /> ,
+                <input id="txtxl2" type="text" style="width: 30px;" /> </div>
+            <div style="display: block;margin-bottom: 3px;">xu: <input id="txtxu1" type="text" style="width: 30px;" /> ,
+                <input id="txtxu2" type="text" style="width: 30px;" /> </div>
+            <div style="display: block;margin-bottom: 3px;">G: <input id="txtxg" type="text" style="width: 50px;" />
+            </div>
+        </div>
+    </div>
+    <!--Graphics-->
+    <div id="plot" ></div>
+
+    <script>
+        let ga = new GA();
+
+        $(document).ready(function () {
+            $("input[type=radio][name=function]").change(function () {
+                getGA();
+            });
+        });
+
+        function getGA() {
+
+            let optFunction = $("input[type=radio][name=function]:checked");
+
+            let CARDINALITY = 100;
+
+            let generations = 100;
+            let population = 100;
+
+            let mutationRate = .8;
+
+            let vx = new Array();
+            let vy = new Array();
+            let vz = new Array(CARDINALITY);
+
+            let vx2 = new Array();
+            let vy2 = new Array();
+            let vz2 = new Array();
+
+            if (optFunction[0].value == "1") {
+
+                let xl = -2;
+                let xu = 2;
+                let yl = -2;
+                let yu = 2;
+
+                vx = makeArrRanged(xl, xu, CARDINALITY);
+                vy = makeArrRanged(yl, yu, CARDINALITY);
+
+                for (let i = 0; i < CARDINALITY; i++) {
+                    vz[i] = new Array();
+                    for (let j = 0; j < CARDINALITY; j++)
+                        vz[i][j] = _f(vx[i], vy[j]);
+                }
+
+                let results = ga.exec(population, generations, _f, mutationRate, xl, xu, yl, yu);
+
+                for (let i = 0; i < results.length; i++) {
+                    vx2.push(results[i].x);
+                    vy2.push(results[i].y);
+                    vz2.push(results[i].z);
+                }
+
+                draw(vx, vy, vz, vx2, vy2, vz2);
+
+
+
+            } else if (optFunction[0].value == "2") {
+                let xl = -5;
+                let xu = 5;
+                let yl = -5;
+                let yu = 5;
+
+                vx = makeArrRanged(xl, xu, CARDINALITY);
+                vy = makeArrRanged(yl, yu, CARDINALITY);
+
+                for (let i = 0; i < CARDINALITY; i++) {
+                    vz[i] = new Array();
+                    for (let j = 0; j < CARDINALITY; j++)
+                        vz[i][j] = f_rastrigin(vx[i], vy[j]);
+                }
+
+                let results = ga.exec(population, generations, f_rastrigin, mutationRate, xl, xu, yl, yu);
+
+                for (let i = 0; i < results.length; i++) {
+                    vx2.push(results[i].x);
+                    vy2.push(results[i].y);
+                    vz2.push(results[i].z);
+                }
+
+                draw(vx, vy, vz, vx2, vy2, vz2);
+            } else if (optFunction[0].value == "3") {
+                let xl = -5;
+                let xu = 5;
+                let yl = -5;
+                let yu = 5;
+
+                vx = makeArrRanged(xl, xu, CARDINALITY);
+                vy = makeArrRanged(yl, yu, CARDINALITY);
+
+                for (let i = 0; i < CARDINALITY; i++) {
+                    vz[i] = new Array();
+                    for (let j = 0; j < CARDINALITY; j++)
+                        vz[i][j] = f_dropwave(vx[i], vy[j]);
+                }
+
+                let results = ga.exec(population, generations, f_dropwave, mutationRate, xl, xu, yl, yu);
+
+                for (let i = 0; i < results.length; i++) {
+                    vx2.push(results[i].x);
+                    vy2.push(results[i].y);
+                    vz2.push(results[i].z);
+                }
+
+                draw(vx, vy, vz, vx2, vy2, vz2);
+            }
+
+
+
+        }
+
+
+        function draw(vx, vy, vz, vx2, vy2, vz3) {
+            var data = {
+                name: 'Space',
+                x: vx,
+                y: vy,
+                z: vz,
+                type: 'surface',
+                colorscale: 'Earth',
+                contours: {
+                    z: {
+                        show: true,
+                        usecolormap: true,
+                        highlightcolor: "#42f462",
+                        project: { z: true }
+                    }
+                }
+            };
+
+            let data2 = {
+                name: 'GA Point',
+                x: vx2,
+                y: vy2,
+                z: vz3,
+                mode: 'markers',
+                marker: {
+                    size: 12,
+                    line: {
+                        color: 'rgba(217, 217, 217, 0.14)',
+                        width: 0.5
+                    },
+                    opacity: 0.8
+                },
+                type: 'scatter3d'
+            }
+
+            var layout = {
+                title: '',
+                autosize: true,
+                width: 900,
+                height: 700,
+                margin: {
+                    l: 65,
+                    r: 50,
+                    b: 65,
+                    t: 90,
+                }
+            };
+
+            Plotly.newPlot(document.getElementById("plot"), [data, data2], layout);
+
+        }
+    </script>
+</body>
+
+</html>

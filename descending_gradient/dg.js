@@ -61,8 +61,8 @@ function f_sphere(x,y){
 
 //Gradient return as vector
 function grad_f(x,y,f){
-    let dx = ( f(x + h, y) - f(x,y) ) / h;
-    let dy = ( f(x, y + h) - f(x,y) ) / h;
+    let dx = ( f(x + (h/2), y) - f(x,y) ) / h;
+    let dy = ( f(x, y + (h/2)) - f(x,y) ) / h;
 
     return [dx,dy];
 }
