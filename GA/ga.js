@@ -88,7 +88,7 @@ class GA {
         }
     }
 
-    exec(N,generations, f, pm, xl, xu, yl, yu) {
+    exec(N,generations, f, pm, xl, xu, yl, yu, updateFunction) {
 
         let total_population = N;
         let iter_generations = 0;
@@ -98,6 +98,11 @@ class GA {
         do {
 
             this.evalFitnessAll(population,f);
+
+            if(updateFunction) {
+                updateFunction(iter_generations,population);
+            }
+
             let children = [];
 
             while(children.length < population.length){
@@ -115,7 +120,6 @@ class GA {
             population = children;
 
             iter_generations++;
-            console.log("generation: " + iter_generations);
         }
         while (iter_generations < generations);
 
