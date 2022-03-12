@@ -3,7 +3,18 @@ class ES {
 
   }
 
-  exec(generations, variance, objectiveFunc, xl, xu, yl, yu, adjustmentEnabled) {
+  exec(esVersion, generations, variance, objectiveFunc, xl, xu, yl, yu, historyUpdateFunc) {
+    if(esVersion === "1+1-ES" || esVersion === "1+1-ES-Adap") {
+      let adjustmentEnabled = (esVersion === "1+1-ES-Adap");
+      this.one_plus_one_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, adjustmentEnabled, historyUpdateFunc);
+    } else if(esVersion === "m+l-ES") {
+      this.mu_plus_lambda_ES();
+    } else if(esVersion === "m_l-ES") {
+      this.mu_comma_lambda_ES();
+    }
+  }
+
+  one_plus_one_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, adjustmentEnabled, historyUpdateFunc) {
     let stdDev = Math.sqrt(variance);
     let xp = new Individual(xl, xu, yl, yu);
     let ne = 0;
@@ -22,12 +33,24 @@ class ES {
         ne += 1;    
         xp = xh;
       }
-      console.log(xp);
       if(adjustmentEnabled) {
         stdDev = this.adjustStdDev(stdDev, gen, ne);
       }
+      historyUpdateFunc(xp);
     }
     return xp;
+  }
+
+  one_plus_one_ES_adap(generations, variance, objectiveFunc, xl, xu, yl, yu) {
+
+  }
+
+  mu_plus_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu) {
+
+  }
+
+  mu_comma_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu) {
+
   }
 
   adjustStdDev(stdDev, gen, ne) {
