@@ -10,6 +10,8 @@ let esObj;
 let history = {};
 let CARDINALITY = 100;
 let functionData;
+let lambda;
+let mu;
 
 function init() {
   esObj = new ES();
@@ -29,11 +31,22 @@ function init() {
   }
 */
 function historyUpdate(generationPoints) {
-  let points = {
-    x: [generationPoints.x],
-    y: [generationPoints.y],
-    z: [generationPoints.z]
+  console.log("Gen points");
+  console.log(generationPoints);
+  let xPoint = [];
+  let yPoint = [];
+  let zPoint = [];
+  for(let i=0; i < generationPoints.length; i++) {
+    xPoint.push(generationPoints[i].x);
+    yPoint.push(generationPoints[i].y);
+    zPoint.push(generationPoints[i].z);
   }
+  let points = {
+    x: xPoint,
+    y: yPoint,
+    z: zPoint
+  }
+  console.log(points);
   history.generations.push(points);
 }
 
@@ -62,7 +75,10 @@ function startExec() {
   var2 = parseInt(document.getElementById("var2").value);
   generations = parseInt(document.getElementById("generations").value);
   esVersion = document.getElementById("esVersion").value;
-  esObj.exec(esVersion, generations, var2, activeFunction, xl, xu, yl, yu, historyUpdate);
+  mu = parseInt(document.getElementById("mu").value);
+  lambda = parseInt(document.getElementById("lambda").value);
+
+  esObj.exec(esVersion, generations, var2, activeFunction, xl, xu, yl, yu, mu, lambda, historyUpdate);
 
   functionData = calculateFunctionPointsData(activeFunction, xl, xu, yl, yu, CARDINALITY);
   document.getElementById("graphContainer").style.display = "";
@@ -73,9 +89,6 @@ function startExec() {
 function updateGraphic(value) {
   if(value > 0 && value <= generations) {
     let generationToUse = history.generations[value-1];
-    document.getElementById("xValue").value = generationToUse.x;
-    document.getElementById("yValue").value = generationToUse.y;
-    document.getElementById("zValue").value = generationToUse.z;
     draw(functionData, generationToUse);
   }
 }

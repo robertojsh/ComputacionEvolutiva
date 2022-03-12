@@ -27,3 +27,7 @@ function calculateFunctionPointsData(activeFunction, xl, xu, yl, yu, cardinality
   };
   return functionData;
 }
+
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}

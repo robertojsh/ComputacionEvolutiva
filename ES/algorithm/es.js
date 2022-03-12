@@ -3,15 +3,14 @@ class ES {
 
   }
 
-  exec(esVersion, generations, variance, objectiveFunc, xl, xu, yl, yu, historyUpdateFunc) {
+  exec(esVersion, generations, variance, objectiveFunc, xl, xu, yl, yu, mu, lambda, historyUpdateFunc) {
     if(esVersion === "1+1-ES" || esVersion === "1+1-ES-Adap") {
       let adjustmentEnabled = (esVersion === "1+1-ES-Adap");
       this.one_plus_one_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, adjustmentEnabled, historyUpdateFunc);
-    } else if(esVersion === "m+l-ES") {
-      this.mu_plus_lambda_ES();
-    } else if(esVersion === "m_l-ES") {
-      this.mu_comma_lambda_ES();
-    }
+    } else if(esVersion === "m+l-ES" || esVersion == "m_l-ES") {
+      let onlyChildren = (esVersion === "m_l-ES");
+      this.mu_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, mu, lambda, onlyChildren, historyUpdateFunc);
+    } 
   }
 
   one_plus_one_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, adjustmentEnabled, historyUpdateFunc) {
@@ -21,9 +20,7 @@ class ES {
     let xh = {};
     let ne = 0;
     for(let gen = 0; gen < generations; gen++) {
-      let r = [];
-      r.push(this.randn_bm(stdDev));
-      r.push(this.randn_bm(stdDev));
+      let r = this.createRandomVector(2, stdDev);
       xh.x = xp.x + r[0];
       xh.y = xp.y + r[1]; 
 
@@ -40,21 +37,55 @@ class ES {
       if(adjustmentEnabled) {
         stdDev = this.adjustStdDev(stdDev, gen, ne);
       }      
-      historyUpdateFunc(xp);
+      historyUpdateFunc([xp]);
     }
     return xp;
   }
 
-  one_plus_one_ES_adap(generations, variance, objectiveFunc, xl, xu, yl, yu) {
+  mu_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, mu, lambda, onlyChildren, historyUpdateFunc) {
+    let stdDev = Math.sqrt(variance);
+    let xpArray = this.initializeIndividuals(mu, stdDev, xl, xu, yl, yu);
+    
+    for(let gen=0; gen < generations; gen++) {
 
+      let childrenArray = new Array();
+      for(let counter=0; counter < lambda; counter++) {
+        let selectedParentIndexes = this.selectParentIndexes(mu);
+        console.log(selectedParentIndexes);
+        let parentOne = xpArray[selectedParentIndexes[0]];
+        let parentTwo = xpArray[selectedParentIndexes[1]];
+         // RSI
+        let child = this.createChild(parentOne, parentTwo);
+        console.log("Created");
+        console.log(child);
+        let rx = this.createRandomVector(1, child.xStdDev);
+        let ry = this.createRandomVector(1, child.yStdDev);
+        console.log("Random Vector");
+        console.log(rx, ry);
+        child.x = child.x + rx[0];
+        child.y = child.x + ry[0];
+        childrenArray.push(child);
+      }
+      console.log("children array ");
+      console.log(childrenArray);
+
+      //  (m+l)-ES
+      let population = xpArray.concat(childrenArray);
+      // (m,l)-ES
+      if(onlyChildren) { 
+        population = childrenArray;
+      }
+      xpArray = this.selectBest(mu, population, objectiveFunc);
+      historyUpdateFunc(xpArray);
+    }
   }
 
-  mu_plus_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu) {
-
-  }
-
-  mu_comma_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu) {
-
+  createRandomVector(dimension, stdDev) {
+    let r = new Array();
+    for(let counter=0; counter < dimension; counter++) {
+      r.push(this.randn_bm(stdDev));
+    }
+    return r;
   }
 
   adjustStdDev(stdDev, gen, ne) {
@@ -66,6 +97,48 @@ class ES {
       newStdDev = stdDev / Math.pow(0.817,2);
     }
     return newStdDev;
+  }
+
+  initializeIndividuals(mu, stdDev, xl, xu, yl, yu) {
+    let individualsArray = new Array(mu);
+    for(let i=0; i < mu; i++) {
+      individualsArray[i] = new Individual(xl, xu, yl, yu);
+      individualsArray[i].xStdDev = 1 + (stdDev - 1) * Math.random();
+      individualsArray[i].yStdDev = 1 + (stdDev - 1) * Math.random();
+    }
+    return individualsArray;
+  }
+
+  selectParentIndexes(mu) {
+    let indexOne = getRandomInt(mu);
+    let indexTwo = getRandomInt(mu);
+    while(indexOne === indexTwo) {
+      indexTwo = getRandomInt(mu);
+    }
+    return [indexOne, indexTwo];
+  }
+
+  createChild(parentOne, parentTwo) {
+    // Intermediate
+    let child = new Individual(0,0,0,0);
+    child.x = (parentOne.x + parentTwo.x) / 2;
+    child.y = (parentOne.y + parentTwo.y) / 2;
+    child.xStdDev = (parentOne.xStdDev + parentTwo.xStdDev) / 2;
+    child.yStdDev = (parentOne.yStdDev + parentTwo.yStdDev) / 2;    
+    return child;
+  }
+
+  selectBest(mu, population, objectiveFunc) {
+    for(let i=0; i < population.length; i++) {
+      population[i].z = objectiveFunc(population[i].x, population[i].y);
+    }
+    population.sort((a,b) => {
+      return a.z > b.z;
+    });
+
+    let newPopulation = population.slice(0, mu);
+    console.log(newPopulation);
+    return newPopulation;
   }
 
   randn_bm(stdDev) {
@@ -84,5 +157,7 @@ class Individual {
     this.x = xl + (xu - xl) * Math.random();
     this.y = yl + (yu - yl) * Math.random();
     this.z = 0;
+    this.xStdDev = 0;
+    this.yStdDev = 0;
   }
 }
