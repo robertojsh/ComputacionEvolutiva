@@ -1,9 +1,9 @@
-function draw(vx, vy, vz, vx2, vy2, vz3) {
-    currentData = {
+function draw(functionData, calculatedData) {
+    let data1 = {
         name: 'Space',
-        x: vx,
-        y: vy,
-        z: vz,
+        x: functionData.x,
+        y: functionData.y,
+        z: functionData.z,
         type: 'surface',
         colorscale: 'Earth',
         contours: {
@@ -17,10 +17,10 @@ function draw(vx, vy, vz, vx2, vy2, vz3) {
     };    
 
     let data2 = {
-        name: 'GA Point',
-        x: vx2,
-        y: vy2,
-        z: vz3,
+        name: 'ES Point',
+        x: calculatedData.x,
+        y: calculatedData.y,
+        z: calculatedData.z,
         mode: 'markers',
         marker: {
             size: 12,
@@ -33,7 +33,7 @@ function draw(vx, vy, vz, vx2, vy2, vz3) {
         type: 'scatter3d'
     }
 
-    var layout = {
+    let layout = {
         title: '',
         autosize: true,
         width: 900,
@@ -45,5 +45,6 @@ function draw(vx, vy, vz, vx2, vy2, vz3) {
             t: 90,
         }
     };
-    Plotly.newPlot(document.getElementById("plot"), [currentData, data2], layout);
+
+    Plotly.newPlot(document.getElementById("plot"), [data1, data2], layout);
 }

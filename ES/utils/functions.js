@@ -12,5 +12,5 @@ function dropwave(x,y){
 }
 
 function functionTwo(x,y) {
-    return x * Math.pow(Math.E, -1 * (Math.pow(x, 2) + Math.pow(y, 2)));
+    return x * Math.pow(2.7182, (-1) * (Math.pow(x, 2) + Math.pow(y, 2)));
 }

@@ -34,8 +34,8 @@
             <label class="form-check-label" for="functionTwo"><img src="resources/f4.png" alt="function two" height="40px"></label>
           </div>
           <div class="form-check">
-            <input class="form-check-input" type="radio" name="functionSelected" value="rastringin">
-            <label class="form-check-label" for="rastringin"><img src="resources/f2.png" alt="rastringin"height="40px" ></label>
+            <input class="form-check-input" type="radio" name="functionSelected" value="rastrigin">
+            <label class="form-check-label" for="rastrigin"><img src="resources/f2.png" alt="rastrigin"height="40px" ></label>
           </div>
           <div class="form-check">
             <input class="form-check-input" type="radio" name="functionSelected" value="dropwave">
@@ -71,14 +71,36 @@
             <input type="text" class="form-control" id="var2" value="100">
           </div>
           <div class="input-group mb-4">
-            <span class="input-group-text">Gen#</span>
+            <span class="input-group-text">Gen #</span>
             <input type="text" class="form-control" id="generations" value="100">
           </div>      
           <button class="btn btn-outline-primary btn-sm" onclick="startExec();">Run!</button> 
         </div>
         <div class="col-1"></div>
-        <div class="col-8">          
-            <div id="plot"></div>
+        <div class="col-8" style="display: none;" id="graphContainer">   
+            <div class="row">
+              <div class="col-2" >
+                <div class="input-group mb-3">
+                  <button class="input-group-text btn btn-outline-primary" id="prevGenBtn">-</button>
+                  <input type="text" class="form-control" id="generationId" value="100">
+                  <button class="input-group-text btn btn-outline-primary" id="nextGenBtn">+</button>
+                </div> 
+              </div>
+              <div class="col-1"></div>
+              <div class="col-7 ">
+                <div class="input-group mb-3">
+                  <span class="input-group-text">X</span>
+                  <input type="text" class="form-control" id="xValue" readonly>
+                  <span class="input-group-text">Y</span>  
+                  <input type="text" class="form-control" id="yValue" readonly>
+                  <span class="input-group-text">Z</span>  
+                  <input type="text" class="form-control" id="zValue" readonly>
+                </div> 
+              </div>
+            </div>     
+            <div class="row">  
+              <div id="plot"></div>
+            </div>
         </div>          
       </div>
     </div>
