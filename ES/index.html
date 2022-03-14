@@ -83,8 +83,14 @@
             <div class="input-group mb-4">
               <span class="input-group-text">Gen#</span>
               <input type="text" class="form-control" id="generations" value="100">
-            </div>      
-            <button class="btn btn-outline-primary btn-sm" onclick="startExec();">Run!</button> 
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" onchange="updateParams();" id="check3D">
+              <label class="form-check-label" for="flexCheckDefault">
+                3D
+              </label>
+            </div>     
+            <button class="btn btn-outline-primary btn-sm" onclick="updateParams();">Run!</button> 
           </div>
           <div class="col-1"></div>
           <div class="col-8">          

@@ -53,7 +53,16 @@ function combine(xp1,xp2){
     return xH;
 }
 
-function mutate(xP, r) {
+function mutate(xP, r,xl,xu,yl,yu) {
+
+    if( (xP.x + r[0] < xl)
+        || (xP.x + r[0] > xu) )
+        xP.x = xP.x - r[0];        
+
+    if( (xP.y + r[1] < yl)
+        || (xP.y + r[1] > yu) )
+        xP.y = xP.y - r[1];
+
     let xH = { "x": xP.x + r[0], "y": xP.y + r[1] };
 
     if(xP.variance)
@@ -93,7 +102,7 @@ function one_one(f, std, generations, xl, xu, yl, yu,isAdaptative, memoryFunctio
         console.log("Eval: " + xP.x + ", " + xP.y + " = " + xP.z);
 
         r = N(0, std, 2);
-        let xH = mutate(xP, r);
+        let xH = mutate(xP, r,xl,xu,yl,yu);
 
         if(xH.x > xu)
             console.log("WARNING: x val outside of scope");
@@ -101,11 +110,10 @@ function one_one(f, std, generations, xl, xu, yl, yu,isAdaptative, memoryFunctio
         if(xH.y > yu)
             console.log("WARNING: y val outside of scope");
 
-        if (memoryFunction)
-            memoryFunction([xH,xP]);
-
-
         if (f(xH.x, xH.y) < f(xP.x, xP.y)) {
+
+            if (memoryFunction)
+                memoryFunction([xH,xP]);
 
             lastXP = xP;
 
@@ -147,25 +155,60 @@ function deleteWorst(population,xH,f){
     return population;
 }
 
-function m_one(f,std,generations,xl,xu,yl,yu,memoryFunction){
+
+function selectBests(population,f,max){
+
+    for(let i = 0; i < population.length;i++)
+        population[i].z = f(population[i].x,population[i].y);
+
+    population.sort(function(a,b){
+        return a.z < b.z;
+    });
+
+    population.splice(max,population.length);
+
+    return population;
+}
+
+
+function m_one(f,std,generations,xl,xu,yl,yu,lambda,plusLambda,memoryFunction){
 
     let mu = 10;
     let xP = this.getRandomPopulation(mu,xl,xu,yl,yu,std);
     let iter_generations = 0;
 
+    let xHi = new Array();
+
     do{
 
-        let xPr1 = selectRandomParent(xP,mu);
-        let xPr2 = selectRandomParent(xP,mu,xPr1);
+        for(let i = 0; i < lambda; i++){
+            let xPr1 = selectRandomParent(xP,mu);
+            let xPr2 = selectRandomParent(xP,mu,xPr1);
 
-        let xH = combine(xPr1,xPr2);
+            let xH = combine(xPr1,xPr2);
 
-        let r = N(0,Math.pow(xH.variance[0],2),1);
-        r.push(N(0,Math.pow(xH.variance[1],2),1)[0]);
+            let r = N(0,Math.pow(xH.variance[0],2),1);
+            r.push(N(0,Math.pow(xH.variance[1],2),1)[0]);
 
-        xH = mutate(xH,r);
+            xH = mutate(xH,r,xl,xu,yl,yu);
 
-        xP = deleteWorst(xP,xH,f);
+            xHi.push(xH);
+        }
+
+
+        if(lambda === 1)
+            xP = deleteWorst(xP,xHi[0],f);
+        else{
+            if(plusLambda)
+                xP = selectBests(xP.concat(xHi),f,mu);
+            else{
+                bxH =  selectBests(xHi,f,mu);
+                xP.splice(xP.length-bxH.length,bxH.length);
+                xP = xP.concat(bxH);
+                
+            }
+
+        }
 
         if(memoryFunction)
             memoryFunction(xP);
