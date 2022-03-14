@@ -3,6 +3,7 @@
 <html lang="en">
 
 <head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://cdn.plot.ly/plotly-2.9.0.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="functions.js"></script>
@@ -23,57 +24,74 @@
 <body>
 
     <!-- Header-->
-    <div style="padding-bottom: 15px;display: block;">
-        <h2 style="color: darkgray;">Tarea 2 - Genetic Algorithm</h2>
-        <h3 style="color: darkgray;">A00354888 - Luis Eduardo Siordia</h3>
-        <h3 style="color: darkgray;">A00354886 - Roberto Julio Saldana</h3>
-    </div>
-
-    <!--Controls-->
-    <div style="display: block;height: 350px;">
-        <div style="padding-right: 75px; float: left;border-right: .1em dashed gray">
-            <h3>Functions</h3>
-            <div class="formulas">
-                <input type="radio" name="function" value="0">
-                <img src="resources/f0.png" />
+    <div class="container">
+        <div class="h3 row mt-3 mb-3">
+          <div class="col">
+            <div>
+              Evolution Strategies
             </div>
-
-            <div class="formulas">
-                <input type="radio" name="function" value="1">
-                <img src="resources/f1.png" />
-            </div>
-
-            <div class="formulas">
-                <input type="radio" name="function" value="2">
-                <img src="resources/f2.png" />
-            </div>
-
-            <div class="formulas">
-                <input type="radio" name="function" value="3">
-                <img src="resources/f3.png" />
-            </div>
+          </div>
         </div>
-        <div style="float:left;padding-top: 4px;padding-left: 15px;">
-            <h3>Hyperparameters:</h3>
-            <div style="display: block;margin-bottom: 3px;">N: <input id="txtPopulation" type="text"
-                    style="width: 50px;" /> </div>
-            <div style="display: block;margin-bottom: 3px;">xl: <input id="txtxl1" type="text" style="width: 30px;" /> ,
-                <input id="txtxl2" type="text" style="width: 30px;" />
+        <div class="row">
+          <div class="col-3">       
+            <div class="mb-2">Pick a function:</div>   
+            <div class="form-check formulas">
+              <input class="form-check-input" type="radio" name="functionSelected" value="functionOne" checked="true">
+              <label class="form-check-label" for="functionOne"><img src="resources/f0.png" alt="function one" height="40px"></label>
             </div>
-            <div style="display: block;margin-bottom: 3px;">xu: <input id="txtxu1" type="text" style="width: 30px;" /> ,
-                <input id="txtxu2" type="text" style="width: 30px;" />
+            <div class="form-check formulas">
+              <input class="form-check-input" type="radio" name="functionSelected" value="functionTwo">
+              <label class="form-check-label" for="functionTwo"><img src="resources/f1.png" alt="function two" height="40px"></label>
             </div>
-            <div style="display: block;margin-bottom: 3px;">G: <input id="txtxg" type="text" style="width: 50px;" />
+            <div class="form-check formulas">
+              <input class="form-check-input" type="radio" name="functionSelected" value="rastrigin">
+              <label class="form-check-label" for="rastringin"><img src="resources/f2.png" alt="rastringin"height="40px" ></label>
             </div>
-            <div style="display: block;margin-bottom: 3px;">M: <input id="txtm" type="text" style="width: 50px;" />
+            <div class="form-check formulas">
+              <input class="form-check-input" type="radio" name="functionSelected" value="dropwave">
+              <label class="form-check-label" for="dropwave"><img src="resources/f3.png" alt="drop-wave" height="40px"></label>
+            </div>   
+            
+            <div class="mt-3 mb-2 ">Select ES Version:</div>
+            <div class="input-group mb-3">
+              <label class="input-group-text" for="esVersion">ES</label>
+              <select class="form-select" id="esVersion">
+                <option value="1+1-ES" selected>(1+1)-ES</option>
+                <option value="1+1-ES-Adap">(1+1)-ES Adap</option>
+                <option value="m+l-ES">(m+l)-ES</option>
+                <option value="m_l-ES">(m,l)-ES</option>
+              </select>
             </div>
-            <br />
-            <div style="display: block;margin-bottom: 3px;"><button id="btnUpdate"
-                    onclick="javascript: updateParams();">Update!</button>
+  
+            <div class="mt-4 mb-3">Hiper-parameters</div>
+            <div class="input-group">
+              <span class="input-group-text">xl</span>
+              <input type="text" class="form-control" id="xl" value="-2">
+              <span class="input-group-text">xu</span>  
+              <input type="text" class="form-control" id="xu" value="2">
             </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text">yl</span>
+              <input type="text" class="form-control" id="yl" value="-2">
+              <span class="input-group-text">yu</span>  
+              <input type="text" class="form-control" id="yu" value="2">
+            </div> 
+            <div class="input-group mb-3">
+              <span class="input-group-text">σ2</span>
+              <input type="text" class="form-control" id="var2" value="100">
+            </div>
+            <div class="input-group mb-4">
+              <span class="input-group-text">Gen#</span>
+              <input type="text" class="form-control" id="generations" value="100">
+            </div>      
+            <button class="btn btn-outline-primary btn-sm" onclick="startExec();">Run!</button> 
+          </div>
+          <div class="col-1"></div>
+          <div class="col-8">          
+              <div id="plot"></div>
+          </div>          
         </div>
-    </div>
-    <br />
+      </div>
 
     <!--Graphics-->
     <div id='divGraph' style="width: 100%;text-align: center;display: none;">
@@ -87,210 +105,9 @@
     </div>
 
 
-    <script>
-        let currentData;
-        let CARDINALITY = 100;
-        let memory = new Array();
+    <script src="ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 
-        $(document).ready(function () {
-            $("input[type=radio][name=function]").change(function () {
-                selectGraph();
-            });
-        });
-
-        function selectGraph() {
-
-            let optFunction = $("input[type=radio][name=function]:checked");
-
-            let generations = 100;
-            let population = 100;
-            let mutationRate = .8;
-
-            let xl = -2;
-            let xu = 2;
-            let yl = -2;
-            let yu = 2;
-
-            if (optFunction[0].value == "2" ||
-                optFunction[0].value == "3") {
-
-                xl = -5;
-                xu = 5;
-                yl = -5;
-                yu = 5;
-
-            }
-
-            setParams(population, xl, xu, yl, yu, generations, mutationRate);
-            updateParams();
-
-        }
-
-        function updateParams() {
-
-            let population = parseInt($("#txtPopulation").val());
-            let xl = parseInt($("#txtxl1").val());
-            let yl = parseInt($("#txtxl2").val());
-            let xu = parseInt($("#txtxu1").val());
-            let yu = parseInt($("#txtxu2").val());
-            let generations = parseInt($("#txtxg").val());
-            let mutationRate = parseFloat($("#txtm").val());
-
-            let optFunction = $("input[type=radio][name=function]:checked");
-
-            let f = fe;
-            if (optFunction[0].value == "1")
-                f = _f;
-            else if (optFunction[0].value == "2")
-                f = f_rastrigin;
-            else if (optFunction[0].value == "3")
-                f = f_dropwave
-
-            let vx = new Array();
-            let vy = new Array();
-
-            vx = makeArrRanged(xl, xu, CARDINALITY);
-            vy = makeArrRanged(yl, yu, CARDINALITY);
-
-            let data = { "vx": vx, "vy": vy, "vz": generateVz(f, vx, vy) };
-
-            updateResults(population, generations, f, mutationRate, data, xl, xu, yl, yu);
-
-        }
-
-        function generateVz(f,vx, vy) {
-            let vz = new Array(CARDINALITY);
-            for (let i = 0; i < CARDINALITY; i++) {
-                vz[i] = new Array();
-                for (let j = 0; j < CARDINALITY; j++)
-                    vz[i][j] = f(vx[i], vy[j]);
-            }
-
-            return vz;
-        }
-
-        function setParams(population, xl, xu, yl, yu, generations, mutationRate) {
-
-            $("#txtPopulation").val(population);
-            $("#txtxl1").val(xl);
-            $("#txtxl2").val(yl);
-            $("#txtxu1").val(xu);
-            $("#txtxu2").val(yu);
-            $("#txtxg").val(generations);
-            $("#txtm").val(mutationRate);
-
-        }
-
-        function updateResults(population, generations, f, mutationRate, data, xl, xu, yl, yu) {
-
-            memory = new Array();
-            let results = one_one(f,1, generations, xl, xu, yl, yu, addMemory);
-
-            let data2 = makeDataFromResults(results);
-
-            $("#divGraph").show();
-
-            draw(data.vx, data.vy, data.vz, data2.vx, data2.vy, data2.vz);
-            $("#txtGen").val(generations);
-        }
-
-        function makeDataFromResults(results){
-            let vx2 = new Array();
-            let vy2 = new Array();
-            let vz2 = new Array();
-
-            for (let i = 0; i < results.length; i++) {
-                vx2.push(results[i].x);
-                vy2.push(results[i].y);
-                vz2.push(results[i].z);
-            }
-
-            return { vx: vx2, vy: vy2, vz: vz2 };
-        }
-
-        function addMemory(g) {
-            memory.push(g);
-        }
-
-        function updateGeneration(){
-            let genData = makeDataFromResults(memory[parseInt($("#txtGen").val())-1]);
-            draw(currentData.x,currentData.y,currentData.z,genData.vx,genData.vy,genData.vz);
-        }
-
-        function back() {
-            let gen = parseInt($("#txtGen").val());
-            gen--;
-            if (gen > 0)
-                $("#txtGen").val(gen);
-
-            updateGeneration();
-        }
-
-        function forward() {
-            let gen = parseInt($("#txtGen").val());
-            gen++;
-            if (history && gen <= history.length)
-                $("#txtGen").val(gen);
-
-            updateGeneration();
-        }
-
-        function draw(vx, vy, vz, vx2, vy2, vz3) {
-            currentData = {
-                name: 'Space',
-                x: vx,
-                y: vy,
-                z: vz,
-                type: 'surface',
-                colorscale: 'Earth',
-                contours: {
-                    z: {
-                        show: true,
-                        usecolormap: true,
-                        highlightcolor: "#42f462",
-                        project: { z: true }
-                    }
-                }
-            };
-
-
-
-            let data2 = {
-                name: 'GA Point',
-                x: vx2,
-                y: vy2,
-                z: vz3,
-                mode: 'markers',
-                marker: {
-                    size: 12,
-                    line: {
-                        color: 'rgba(217, 217, 217, 0.14)',
-                        width: 0.5
-                    },
-                    opacity: 0.8
-                },
-                type: 'scatter3d'
-            }
-
-            var layout = {
-                title: '',
-                autosize: true,
-                width: 900,
-                height: 700,
-                margin: {
-                    l: 65,
-                    r: 50,
-                    b: 65,
-                    t: 90,
-                }
-            };
-
-            Plotly.newPlot(document.getElementById("plot"), [currentData, data2], layout);
-
-        }
-
-
-    </script>
 </body>
 
 </html>

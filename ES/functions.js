@@ -1,16 +1,22 @@
 function fe(x,y){
-    return x * Math.pow(Math.E, -Math.pow(x,2) - Math.pow(y,2));
+    return parseFloat(x * Math.pow(Math.E, -1 * (Math.pow(x,2) + Math.pow(y,2))));
 }
 
 function _f(x, y) {
     return Math.pow((x - 2), 2) + Math.pow((y - 2), 2);
 }
 
-function makeArrRanged(startValue, stopValue, cardinality) {
+function makeArrRanged(startValue, stopValue, cardinality, pt) {
     var arr = [];
     var step = (stopValue - startValue) / (cardinality - 1);
     for (var i = 0; i < cardinality; i++) {
-        arr.push(startValue + (step * i));
+        let nv = startValue + (step * i);
+        //if(nv > pt){
+         //   arr.push(pt);
+          //  i++;
+           // pt = stopValue+1;
+        //}
+        arr.push(nv);
     }
     return arr;
 }
