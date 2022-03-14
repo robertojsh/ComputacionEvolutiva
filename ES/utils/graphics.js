@@ -36,8 +36,9 @@ function draw(functionData, calculatedData) {
     let layout = {
         title: '',
         autosize: true,
-        width: 900,
-        height: 700,
+        uirevision: true,
+        width: 800,
+        height: 600,
         margin: {
             l: 65,
             r: 50,
@@ -46,5 +47,5 @@ function draw(functionData, calculatedData) {
         }
     };
 
-    Plotly.newPlot(document.getElementById("plot"), [data1, data2], layout);
+    Plotly.react(document.getElementById("plot"), [data1, data2], layout);
 }

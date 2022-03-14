@@ -17,22 +17,7 @@ function init() {
   esObj = new ES();
 }
 
-/* 
-  {
-    generations: [
-      {
-        points: {
-          x: [],
-          y: [],
-          z: []
-        }
-      }
-    ]
-  }
-*/
 function historyUpdate(generationPoints) {
-  console.log("Gen points");
-  console.log(generationPoints);
   let xPoint = [];
   let yPoint = [];
   let zPoint = [];

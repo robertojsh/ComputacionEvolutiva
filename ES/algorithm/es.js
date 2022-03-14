@@ -56,18 +56,14 @@ class ES {
         let parentTwo = xpArray[selectedParentIndexes[1]];
          // RSI
         let child = this.createChild(parentOne, parentTwo);
-        console.log("Created");
         console.log(child);
         let rx = this.createRandomVector(1, child.xStdDev);
         let ry = this.createRandomVector(1, child.yStdDev);
-        console.log("Random Vector");
         console.log(rx, ry);
         child.x = child.x + rx[0];
-        child.y = child.x + ry[0];
+        child.y = child.y + ry[0];
         childrenArray.push(child);
       }
-      console.log("children array ");
-      console.log(childrenArray);
 
       //  (m+l)-ES
       let population = xpArray.concat(childrenArray);
@@ -132,6 +128,7 @@ class ES {
     for(let i=0; i < population.length; i++) {
       population[i].z = objectiveFunc(population[i].x, population[i].y);
     }
+    
     population.sort((a,b) => {
       return a.z > b.z;
     });
