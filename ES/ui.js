@@ -172,6 +172,8 @@ function makeDataFromResults(results) {
 }
 
 function addMemory(g) {
+    console.log(g);
+    console.log(memory);
     memory.push(g);
 }
 
@@ -200,12 +202,6 @@ function forward() {
 
 function draw(vx, vy, vz, vx2, vy2, vz3) {
 
-    console.log(vx);
-    console.log(vy);
-
-    console.log(vx2);
-    console.log(vy2);
-
     let wholeData = [];
 
     currentData = {
@@ -230,7 +226,7 @@ function draw(vx, vy, vz, vx2, vy2, vz3) {
 
     if (is2value) {
         let data2 = {
-            name: 'ES Point',
+            name: 'xH Point',
             uirevision: true,
             x: [vx2[0]],
             y: [vy2[0]],
@@ -248,7 +244,7 @@ function draw(vx, vy, vz, vx2, vy2, vz3) {
         }
 
         let data3 = {
-            name: 'ES Point',
+            name: 'xP Point',
             uirevision: true,
             x: [vx2[1]],
             y: [vy2[1]],

@@ -4,9 +4,10 @@ function N(mean, std, D) {
         let r1 = Math.random();
         let r2 = Math.random();
 
-        let z0 = Math.sqrt(-2.0 * Math.log(r1)) * Math.cos((Math.PI * 2) * r2);
+        let z0 = Math.sqrt(-2.0 * Math.log(r1)) * Math.cos((Math.PI * 2) * r2);        
 
-        console.log("data: " + mean + "," + std +  "  N: " + z0 * std + mean);
+        //console.log("data: " + mean + "," + std +  "  N: " + z0 * std + mean);
+
         return z0 * std + mean;        
     })
 }
@@ -74,15 +75,20 @@ function mutate(xP, r,xl,xu,yl,yu) {
 
 const C = 0.817;
 
-function OpOAdaptative(Ne, ti, variance){
+function OpOAdaptative(Ne, ti, variance, origVariance){
 
-    phi = Ne / ti;
+    phi = Ne / (ti+1);
 
-    if(phi < 1/5)
+    if(phi < .2)
         variance = Math.pow(C,2) * variance;
-    else //if(phi > 1/5)
+    else if(phi > 1/5)
         variance = variance / Math.pow(C,2);
 
+
+    //if(variance > origVariance)
+    //    return origVariance;
+
+    //console.log("variance: " + variance);
     return variance;
 }
 
@@ -99,7 +105,6 @@ function one_one(f, std, generations, xl, xu, yl, yu,isAdaptative, memoryFunctio
 
         //eval xP
         xP.z = f(xP.x, xP.y);
-        console.log("Eval: " + xP.x + ", " + xP.y + " = " + xP.z);
 
         r = N(0, std, 2);
         let xH = mutate(xP, r,xl,xu,yl,yu);
@@ -118,8 +123,11 @@ function one_one(f, std, generations, xl, xu, yl, yu,isAdaptative, memoryFunctio
             lastXP = xP;
 
             xP = xH;
+            xP.z = f(xP.x, xP.y)
 
             Ne++;
+
+            console.log("MINIMA: "+ xP.x +"," +xP.y +" = "+ xP.z);
 
         }
 
@@ -131,7 +139,7 @@ function one_one(f, std, generations, xl, xu, yl, yu,isAdaptative, memoryFunctio
 
     //eval xP
     xP.z = f(xP.x, xP.y);
-    console.log("Final Eval: " + xP.x + ", " + xP.y + " = " + xP.z);
+    
 
 
     if (memoryFunction)
@@ -162,7 +170,7 @@ function selectBests(population,f,max){
         population[i].z = f(population[i].x,population[i].y);
 
     population.sort(function(a,b){
-        return a.z < b.z;
+        return a.z > b.z;
     });
 
     population.splice(max,population.length);
@@ -224,7 +232,7 @@ function m_one(f,std,generations,xl,xu,yl,yu,lambda,plusLambda,memoryFunction){
 function getRandomInt(max) {
     max = Math.floor(max);
     let result =  Math.floor(Math.random() * (max)); //The maximum is exclusive and the minimum is inclusive
-    console.log(result);
+    //console.log(result);
 
     return result;
   }
