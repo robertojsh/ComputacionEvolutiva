@@ -33,9 +33,7 @@ function getRandomInt(max) {
 }
 
 function getRandomNumber(low, upper) {
-  console.log("running random");
   let value = Math.random();
-  console.log(low, upper);
   if(low !== undefined && upper !== undefined) {
     value = low + (upper - low) * value;
   }  

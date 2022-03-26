@@ -7,11 +7,9 @@ class DE {
     this.bestIndex = 0;
     let X = this.initializePopulation(population, xl, xu, yl, yu);
     for(let gen=0; gen < generations; gen++) {
-      console.log(X);
       for(let i=0; i < population; i++) {
         let vi = this.mutation(i, X, lambda, deVersion);        
-        let ui = this.recombine(X[i], vi, cr);     
-        console.log(X[i], vi, ui);   
+        let ui = this.recombine(X[i], vi, cr);    
         X[i] = this.selection(X[i], ui, objectiveFunc); 
         
         if(X[i].z < X[this.bestIndex].z) {
@@ -67,39 +65,29 @@ class DE {
     let ui = {x:0, y:0};
     // For X
     let rax = getRandomNumber();
-    console.log("Random X: ", rax, "CR: ", cr);
     if(rax <= cr) {
-      console.log("Picked Vi X");
       ui.x = vi.x;
     } else {
-      console.log("Picked Xi X");
       ui.x = xi.x;
     }
 
     // For Y    
     let ray = getRandomNumber();
-    console.log("Random Y: ", ray, "CR: ", cr);
     if(ray <= cr) {
-      console.log("Picked Vi y");
       ui.y = vi.y;
     } else {
       ui.y = xi.y;
-      console.log("Picked Xi y");
     }
     ui.z = 0;
-    console.log("U Values: ", ui.x, " ",ui.y);
     return ui;
   }
 
   selection(X, u, objectiveFunc) {
     X.z = objectiveFunc(X.x, X.y);
     u.z = objectiveFunc(u.x, u.y);
-    console.log("Best: ", X.z, u.z);
     if(u.z < X.z) {
-      console.log("Return U");
       return u;
     }
-    console.log("Return X");
     return X;
   }
 

@@ -32,7 +32,6 @@ function historyUpdate(generationPoints) {
     y: yPoint,
     z: zPoint
   }
-  console.log(points);
   history.generations.push(points);
 }
 
@@ -69,6 +68,62 @@ function startExec() {
   document.getElementById("graphContainer").style.display = "";
   document.getElementById("generationId").value = generations;
   updateGraphic(generations);
+  document.getElementById("bestX").value = Math.round(history.generations[generations-1].x[deObj.bestIndex]);
+  document.getElementById("bestY").value = Math.round(history.generations[generations-1].y[deObj.bestIndex]);
+  document.getElementById("bestZ").value = Math.round(history.generations[generations-1].z[deObj.bestIndex]);
+}
+
+function runTest() {
+  let runs = 30;
+  let versions = ["DE/rand/1/bin", "DE/best/1/bin", "DE/best/2/bin"];
+  let objFunctions = ["rastrigin", "ackley", "sphere"];
+  let activeFunc;
+  let txl = 0;
+  let txu = 0;
+  let tyl = 0;
+  let tyu = 0;
+  let generationsToRun = 100;
+  let populationN = 100;  
+  let data = [];
+  data.push("ITERATION,FUNCTION,VERSION,X,Y,Z");
+
+  for(let i=1; i <= runs; i++) {
+    objFunctions.forEach((func) => {
+      if(func === "rastrigin") {
+        activeFunc = rastrigin;
+        txl = -5;
+        txu = 5;
+        tyl = -5;
+        tyu = 5;
+      } else if(func === "ackley") {
+        activeFunc = ackley;
+        txl = -5;
+        txu = 5;
+        tyl = -5;
+        tyu = 5;
+      } else if(func === "sphere"){
+        activeFunc = sphere;
+        txl = -5;
+        txu = 5;
+        tyl = -5;
+        tyu = 5;
+      }
+      versions.forEach((version) => {
+        history.generations = [];
+        deObj.exec(version, generationsToRun, populationN, activeFunc, txl, txu, tyl, tyu, 0.5, 1.5, historyUpdate);
+        let bestX = history.generations[generationsToRun-1].x[deObj.bestIndex];
+        let bestY = history.generations[generationsToRun-1].y[deObj.bestIndex];
+        let bestZ = history.generations[generationsToRun-1].z[deObj.bestIndex];
+        if(func === "sphere") {
+          console.log(activeFunc);
+          console.log(`${i},${func},${version},${bestX},${bestY},${bestZ}`);
+        }
+        data.push(`${i},${func},${version},${bestX},${bestY},${bestZ}`);
+      });    
+    });
+  }
+
+  download(data.join("\n"), "results.csv", "csv");
 }
 
 function updateGraphic(value) {
