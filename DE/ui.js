@@ -85,7 +85,7 @@ function runTest() {
   let generationsToRun = 100;
   let populationN = 100;  
   let data = [];
-  data.push("ITERATION,FUNCTION,VERSION,X,Y,Z");
+  data.push("ITERATION,FUNCTION,DE/rand/1/bin,DE/best/1/bin,DE/best/2/bin");
 
   for(let i=1; i <= runs; i++) {
     objFunctions.forEach((func) => {
@@ -108,18 +108,14 @@ function runTest() {
         tyl = -5;
         tyu = 5;
       }
+      versionResults = [];
       versions.forEach((version) => {
         history.generations = [];
         deObj.exec(version, generationsToRun, populationN, activeFunc, txl, txu, tyl, tyu, 0.5, 1.5, historyUpdate);
-        let bestX = history.generations[generationsToRun-1].x[deObj.bestIndex];
-        let bestY = history.generations[generationsToRun-1].y[deObj.bestIndex];
-        let bestZ = history.generations[generationsToRun-1].z[deObj.bestIndex];
-        if(func === "sphere") {
-          console.log(activeFunc);
-          console.log(`${i},${func},${version},${bestX},${bestY},${bestZ}`);
-        }
-        data.push(`${i},${func},${version},${bestX},${bestY},${bestZ}`);
+        let bestZ = history.generations[generationsToRun-1].z[deObj.bestIndex];        
+        versionResults.push(bestZ);
       });    
+      data.push(`${i},${func},${versionResults[0]},${versionResults[1]},${versionResults[2]}`);
     });
   }
 
