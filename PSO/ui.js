@@ -103,7 +103,6 @@ function setParams(xl, xu, yl, yu, generations) {
     $("#xu").val(xu);
     $("#yu").val(yu);
     $("#generations").val(generations);
-    $("#var2").val(.2);
 
 }
 
@@ -279,3 +278,34 @@ function draw(vx, vy, vz, vx2, vy2, vz3) {
     Plotly.react(document.getElementById("plot"), wholeData, layout);
 
 }
+
+function runTest(){
+    let memory30 = [];
+    report("X      |      Y      |      fitness    ");
+    for(let i=0;i<30;i++){
+        updateParams();
+        let best = searchBest(memory[memory.length-1]);
+        report(best.x + ","+best.y+","+best.fitness);
+        
+    }
+}
+
+function searchBest(swarm){
+    let best = { fitness : Infinity};
+    for(let i=0;i<swarm.length;i++){
+        if(swarm[i].fitness < best.fitness)
+            best = swarm[i];
+    }
+
+    return best;
+}
+
+function report(log) {
+    $('#log').show();
+    let newp = document.createElement("p");
+    let text = document.createTextNode(log);
+    newp.appendChild(text);
+    document.getElementById('log').appendChild(newp);
+
+}
+
