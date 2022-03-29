@@ -122,6 +122,9 @@ function updateResults(generations, f, xl, xu, yl, yu) {
 
     draw(data.vx, data.vy, data.vz, data2.vx, data2.vy, data2.vz);
     $("#txtGen").val(memory.length);
+    console.log(results);
+    let b = searchBest(results);
+    report("best: x : " + b.x + ", y : " + b.y + " f(x,y) =  " + b.fitness);
 }
 
 function makeDataFromResults(results) {
@@ -139,7 +142,6 @@ function makeDataFromResults(results) {
 }
 
 function addMemory(g) {
-    console.log(g);
     memory.push(g);
 }
 
@@ -150,13 +152,13 @@ function updateGeneration() {
 
 function play(){
     $("#txtGen").val(1);
-    setTimeout(verify,500);
+    setTimeout(verify,400);
 }
 
 function verify(){
     forward();
     if($("#txtGen").val() < 100)
-        setTimeout(verify,500);
+        setTimeout(verify,400);
 }
 
 function back() {
