@@ -6,8 +6,11 @@ class DE {
   exec(deVersion, generations, population, objectiveFunc, xl, xu, yl, yu, cr, lambda, historyUpdateFunc) {
     this.bestIndex = 0;
     let X = this.initializePopulation(population, xl, xu, yl, yu);
+
     for(let gen=0; gen < generations; gen++) {
+
       for(let i=0; i < population; i++) {
+        
         let vi = this.mutation(i, X, lambda, deVersion);        
         let ui = this.recombine(X[i], vi, cr);    
         X[i] = this.selection(X[i], ui, objectiveFunc); 
