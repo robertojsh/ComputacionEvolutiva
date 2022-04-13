@@ -1,10 +1,26 @@
-function draw(functionData, calculatedData) {
+const TYPE_A_3D = 'surface';
+const TYPE_A_2D = 'contour';
+
+const TYPE_B_3D = 'scatter3d';
+const TYPE_B_2D = 'scatter';
+
+
+function draw(functionData, calculatedData,type) {
+
+    let currentTypeA = TYPE_A_2D;
+    let currentTypeB = TYPE_B_2D;
+
+    if (type) {
+        currentTypeA = TYPE_A_3D;
+        currentTypeB = TYPE_B_3D;
+    }
+
     let data1 = {
         name: 'Space',
         x: functionData.x,
         y: functionData.y,
         z: functionData.z,
-        type: 'surface',
+        type: currentTypeA,
         colorscale: 'Earth',
         contours: {
             z: {
@@ -30,7 +46,7 @@ function draw(functionData, calculatedData) {
             },
             opacity: 0.8
         },
-        type: 'scatter3d'
+        type: currentTypeB
     }
 
     let layout = {

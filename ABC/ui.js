@@ -13,6 +13,7 @@ let functionData;
 let pf;
 let tries;
 let population = 0;
+let grap3d = true;
 
 function init() {
   abcObj = new ABC();
@@ -67,6 +68,9 @@ function startExec() {
   functionData = calculateFunctionPointsData(activeFunction, xl, xu, yl, yu, CARDINALITY);
   document.getElementById("graphContainer").style.display = "";
   document.getElementById("generationId").value = generations;
+
+  grap3d = document.getElementById("check3D").checked;
+
   updateGraphic(generations);
 }
 
@@ -122,8 +126,40 @@ function runTest() {
 function updateGraphic(value) {
   if(value > 0 && value <= generations) {
     let generationToUse = history.generations[value-1];
-    draw(functionData, generationToUse);
+    setBestUI(getBest(generationToUse));
+    draw(functionData, generationToUse,grap3d);
   }
+}
+
+function play(){
+  document.getElementById("generationId").value = 1;
+  setTimeout(verifyPlay,400);
+
+}
+
+function verifyPlay(){
+
+  document.getElementById("nextGenBtn").click();
+
+  let current = parseInt(document.getElementById("generationId").value);
+  if(current < population)
+    setTimeout(verifyPlay,400);
+}
+
+function setBestUI(best){
+  document.getElementById("bestX").value = best.x;
+  document.getElementById("bestY").value = best.y;
+  document.getElementById("bestZ").value = best.z;
+}
+
+function getBest(gen){
+  let currentBest = 0;
+  for(let i=1;i<gen.x.length;i++){
+    if(gen.z[i] < gen.z[currentBest])
+      currentBest = i;
+  }
+
+  return { 'x' : gen.x[currentBest], 'y': gen.y[currentBest], 'z': gen.z[currentBest] };
 }
 
 
@@ -132,6 +168,9 @@ window.onload = function() {
   let nextGenBtn = document.getElementById("nextGenBtn");
   let prevGenBtn = document.getElementById("prevGenBtn");
   let genIdInput = document.getElementById("generationId");
+  let playBtn = document.getElementById("playBtn");
+
+  playBtn.addEventListener("click",play);
 
   nextGenBtn.addEventListener("click", () => {
     let currentGen = parseInt(genIdInput.value);

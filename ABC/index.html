@@ -39,7 +39,7 @@
             <label class="form-check-label" for="sphere">Sphere</label>
           </div>   
 
-          <div class="mt-4 mb-3">Hiper-parameters</div>
+          <div class="mt-4 mb-3">Hyper-parameters</div>
           <div class="input-group">
             <span class="input-group-text">xl</span>
             <input type="text" class="form-control" id="xl" value="-2">
@@ -67,7 +67,13 @@
           <div class="input-group mb-3">
             <span class="input-group-text">Ti</span>
             <input type="text" class="form-control" id="tries" value="30">
-          </div> 
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" checked id="check3D">
+            <label class="form-check-label" for="flexCheckDefault">
+              3D
+            </label>
+          </div>  
           <button class="btn btn-outline-primary btn-sm" onclick="startExec();">Run!</button> 
           <!--<button class="btn btn-outline-primary btn-sm" onclick="runTest();">Run 30!</button> -->
         </div>
@@ -83,6 +89,7 @@
                   <button class="input-group-text btn btn-outline-primary" id="prevGenBtn">-</button>
                   <input type="text" class="form-control" id="generationId" value="100">
                   <button class="input-group-text btn btn-outline-primary" id="nextGenBtn">+</button>
+                  <button class="input-group-text btn btn-outline-primary" id="playBtn">&#9658;</button>
                 </div>                
               </div>
               <div class="col-9">
