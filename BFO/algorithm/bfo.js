@@ -140,10 +140,10 @@ class BFO {
         }
 
         //𝐽𝑐𝑐(𝜃,𝑃(𝑗,𝑘,𝑒))
-        bacteria.fitness = totalSumVal;
+        bacteria.fitness = bacteria.z + totalSumVal;
 
         //J(i,j,k,l) + 𝐽𝑐𝑐(𝜃,𝑃(𝑗,𝑘,𝑒))
-        bacteria.z += bacteria.fitness;
+        //bacteria.z += bacteria.fitness;
     }
 
 
@@ -268,6 +268,8 @@ class Bacteria {
 
     computeObjectiveFunction() {
         this.z = this.f(this.position[0],this.position[1]);
+        if(this.z < -100)
+            console.log(this.z,this.position);
     }
 
     randomParamValue() {
