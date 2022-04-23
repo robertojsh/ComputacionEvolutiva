@@ -21,13 +21,13 @@ class BFO {
 
         this.f = f;//objective function
 
+
         this.population = new Array(this.S);
 
     }
 
     //Algorithm BFO
     exec(historyUpdate) {
-        self = this;
 
         //Step1 : Initialize Happened at construction
         this.initialize(this.p,this.l,this.u,this.f);
@@ -42,6 +42,9 @@ class BFO {
                 for (let j = 0; j < this.Nc; j++) {
                     this.chemotaxis();
 
+                    if(historyUpdate)
+                        historyUpdate(this.population);
+
                     //Step 5: if j < Nc continue
                 }
 
@@ -55,8 +58,7 @@ class BFO {
             //Step 8: Elimination-dispersal: For i=1,2, S with prob Ped, eliminate and disperse each bacteria
             this.ElminationDispersal();
 
-            if(historyUpdate)
-                historyUpdate(this.population);
+            
 
         }
 
@@ -95,6 +97,9 @@ class BFO {
             moved_bacteria.computeObjectiveFunction();
             this.computeFitness(moved_bacteria);
 
+
+            this.population[i] = moved_bacteria;
+
             //[g] Swim
             //Let m=0 counter for swim length
             //while  m<Ns
@@ -118,7 +123,7 @@ class BFO {
             //[h] Go to next baterium(i+1) if(i <> S) go to [b] to process next bact
 
             //REPRODUCTION: [a] for the given k and l, and for each i let j_i_health = SUM j=1 -> Nc + 1 J(i,j,k,l)
-            this.population[i].health = this.population[i].health + this.population[i].fitness;
+            this.population[i].health += this.population[i].fitness;
         }
 
 
@@ -139,11 +144,8 @@ class BFO {
             totalSumVal += ((-1 * this.d_attractant) * Math.exp((-1 * this.w_attractant) * sumThetaSqrt)) + (this.h_repellant * Math.exp((-1 * this.w_repellant) * sumThetaSqrt));
         }
 
-        //𝐽𝑐𝑐(𝜃,𝑃(𝑗,𝑘,𝑒))
-        bacteria.fitness = bacteria.z + totalSumVal;
-
         //J(i,j,k,l) + 𝐽𝑐𝑐(𝜃,𝑃(𝑗,𝑘,𝑒))
-        //bacteria.z += bacteria.fitness;
+        bacteria.fitness = bacteria.z + totalSumVal;
     }
 
 
@@ -227,7 +229,8 @@ class BFO {
         //[b] The Sr bacteria with the highest J_health values dies and the remaining Sr splits
         let Sr = this.S / 2;
         for(let i=0;i<Sr;i++){
-            this.population[Sr+i] = this.population[i];
+            this.population[Sr+i] = Object.assign({}, this.population[i]);
+            this.population[Sr+i].computeObjectiveFunction = this.population[i].computeObjectiveFunction;
         }
 
 
@@ -260,7 +263,7 @@ class Bacteria {
             this.position[i] = this.randomParamValue();
         }
 
-        this.z = this.f(this.position[0],this.position[1]);
+        this.computeObjectiveFunction();
         this.fitness = Infinity;
 
         this.health = 0;
@@ -268,11 +271,16 @@ class Bacteria {
 
     computeObjectiveFunction() {
         this.z = this.f(this.position[0],this.position[1]);
-        if(this.z < -100)
-            console.log(this.z,this.position);
+        
+        if(this.z < best.z){
+            best = { x:this.position[0], y: this.position[1], z: this.z };
+            report(best.x + " y : " + best.y + " z = " + best.z);
+        }
     }
 
     randomParamValue() {
         return this.l + (this.u - this.l) * Math.random();
     }
 }
+
+best = { x: Infinity, y: Infinity, z : Infinity};

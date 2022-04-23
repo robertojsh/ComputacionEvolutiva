@@ -67,7 +67,7 @@ function startExec() {
 
   console.log(activeFunction);
 
-  bfoObj = new BFO(p,S_bacteria,Nc,Ns,Nre,Ned,Ped,Ci,xl,xu,activeFunction);
+  bfoObj = new BFO(p,S_bacteria,Nc,Ns,Nre,Ned,Ped,Ci,xl,xu,activeFunction,report);
   bfoObj.exec(historyUpdate);
 
 
@@ -80,53 +80,24 @@ function startExec() {
   updateGraphic(history.generations.length);
 }
 
-function runTest() {
-  let runs = 30;
-  let versions = ["DE/rand/1/bin", "DE/best/1/bin", "DE/best/2/bin"];
-  let objFunctions = ["rastrigin", "ackley", "sphere"];
-  let activeFunc;
-  let txl = 0;
-  let txu = 0;
-  let tyl = 0;
-  let tyu = 0;
-  let generationsToRun = 100;
-  let populationN = 100;  
-  let data = [];
-  data.push("ITERATION,FUNCTION,DE/rand/1/bin,DE/best/1/bin,DE/best/2/bin");
-
-  for(let i=1; i <= runs; i++) {
-    objFunctions.forEach((func) => {
-      if(func === "rastrigin") {
-        activeFunc = rastrigin;
-        txl = -5;
-        txu = 5;
-        tyl = -5;
-        tyu = 5;
-      } else if(func === "ackley") {
-        activeFunc = ackley;
-        txl = -5;
-        txu = 5;
-        tyl = -5;
-        tyu = 5;
-      } else if(func === "sphere"){
-        activeFunc = sphere;
-        txl = -5;
-        txu = 5;
-        tyl = -5;
-        tyu = 5;
-      }
-      versionResults = [];
-      versions.forEach((version) => {
-        history.generations = [];
-        deObj.exec(version, generationsToRun, populationN, activeFunc, txl, txu, tyl, tyu, 0.5, 1.5, historyUpdate);
-        let bestZ = history.generations[generationsToRun-1].z[deObj.bestIndex];        
-        versionResults.push(bestZ);
-      });    
-      data.push(`${i},${func},${versionResults[0]},${versionResults[1]},${versionResults[2]}`);
-    });
+function runTest(){
+  report("X      |      Y      |      fitness    ");
+  for(let i=0;i<30;i++){
+      startExec();
+      let best = getBest(history.generations[i]);
+      report(best.x + ","+best.y+","+best.z);
+      
   }
+}
 
-  download(data.join("\n"), "results.csv", "csv");
+
+function report(log) {
+  $('#log').show();
+  let newp = document.createElement("p");
+  let text = document.createTextNode(log);
+  newp.appendChild(text);
+  document.getElementById('log').appendChild(newp);
+
 }
 
 function updateGraphic(value) {
@@ -148,7 +119,7 @@ function verifyPlay(){
   document.getElementById("nextGenBtn").click();
 
   let current = parseInt(document.getElementById("generationId").value);
-  if(current < population)
+  if(current < history.generations.length)
     setTimeout(verifyPlay,400);
 }
 
