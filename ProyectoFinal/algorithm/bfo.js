@@ -67,7 +67,7 @@ class BFO {
     //Initialize all the values (population)
     initialize(p, l, u, f) {
         for (let i = 0; i < this.S; i++) {
-            this.population[i] = new Bacteria(p, l, u, f);
+            this.population[i] = new Bacteria(p, l, u, f,this.isFeasible);
         }
     }
 
@@ -106,7 +106,9 @@ class BFO {
             //Let m=m+1
             for (let m = 0; m < this.Ns; m++) {
                 //if J(i,j+1,k,l) < Jlast let Jlast = J(i,j+1,k,l) = new fitness
-                if (moved_bacteria.fitness < J_last) {
+                if (moved_bacteria.fitness < J_last
+                    && moved_bacteria.fitness >0
+                    && this.isFeasible(moved_bacteria)) {
 
                     J_last = moved_bacteria.fitness;
 
@@ -220,10 +222,34 @@ class BFO {
         //Sort bacteria and chemotactic parameters C(i) in order of ascending cost j_health (higher means lower health)
         this.population.sort((a,b) => {
 
-            if( a.health < b.health)
+
+            let isFeasibleA = this.isFeasible(a);
+            let isFeasibleB = this.isFeasible(b);
+
+            //1. Between 2 Feasible solutions,the one with the highest fitness value wins
+            if(isFeasibleA && isFeasibleB){
+                if( a.health < b.health)
+                    return -1;
+                if(a.health > b.health)
+                    return 1;
+            }
+
+            //2. If one solution is feasible and the other one is infeasible, the feasible wins
+            if(isFeasibleA && !isFeasibleB)
                 return -1;
-            if(a.health > b.health)
+            else if(isFeasibleB && !isFeasibleA)
                 return 1;
+
+            //3. If both are infeasible, the one with the lowest sum of constraint violation is preferred
+            if(!isFeasibleA && !isFeasibleB){
+                let computeConstraintsViolationA = this.computeConstraintsViolation(a);
+                let computeConstraintsViolationB = this.computeConstraintsViolation(b);
+
+                if(computeConstraintsViolationA < computeConstraintsViolationB)
+                    return -1;
+                if(computeConstraintsViolationB < computeConstraintsViolationA)
+                    return 1;
+            }
 
             return 0;
         });
@@ -251,20 +277,58 @@ class BFO {
 
             if(rand_n <= this.Ped){
                 //If a bacterium is eliminated, simply disperse another one to a random location
-                this.population[i] = new Bacteria(this.p,this.l,this.u,this.f);
+                this.population[i] = new Bacteria(this.p,this.l,this.u,this.f,this.isFeasible);
 
             }
         }
     }
+
+    isFeasible(bacteria){
+
+        if(bacteria.fitness < 0)
+            return false;
+
+        let N = bacteria.position[2];
+        let D = bacteria.position[1];
+        let d = bacteria.position[0];
+        
+        let g1_val = g1(N,D,d);
+        let g2_val = g2(D,d);
+        let g3_val = g3(N,D,d);
+        let g4_val = g4(D,d);
+
+        if( g1_val <= 0
+            && g2_val <= 0
+            && g3_val <= 0
+            && g4_val <= 0)
+            return true;
+
+        return false;
+    }
+
+    computeConstraintsViolation(bacteria){
+        let N = bacteria.position[2];
+        let D = bacteria.position[1];
+        let d = bacteria.position[0];
+        
+        let g1_val = g1(N,D,d);
+        let g2_val = g2(D,d);
+        let g3_val = g3(N,D,d);
+        let g4_val = g4(D,d);
+
+        return Math.max(0,g1_val) + Math.max(0,g2_val) + Math.max(0,g3_val) + Math.max(0,g4_val);
+    }
 }
 
 class Bacteria {
-    constructor(p, l, u, f) {
+    constructor(p, l, u, f, isFeasible) {
         this.position = new Array(p);
         this.l = l;
         this.u = u;
 
         this.f = f;
+
+        this.isFeasible = isFeasible;
 
         for (let i = 0; i < p; i++) {
             this.position[i] = this.randomParamValue(this.l[i],this.u[i]);
@@ -279,9 +343,11 @@ class Bacteria {
     computeObjectiveFunction() {
         this.z = this.f(this.position[0],this.position[1],this.position[2]);
         
-        if(this.z < best.z){
-            best = { x:this.position[0], y: this.position[1], z: this.z };
-            report(best.x + " y : " + best.y + " z = " + best.z);
+        if(this.z < best.z
+            && this.z > 0
+            && this.isFeasible(this)){
+            best = { d :this.position[0], D: this.position[1], N : this.position[2] , z: this.z };
+            report("d = " +best.d + ", D = " + best.D + ", N =   " + best.N +  " W = " + best.z);
         }
     }
 

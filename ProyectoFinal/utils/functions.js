@@ -33,3 +33,37 @@ function booth(x, y) {
 function spring_weight(x1,x2,x3){
   return (x3 + 2) * (x2 * Math.pow(x1,2));
 }
+
+//D = x2
+//d = x1
+//N = x3
+
+function g1(N,D,d){
+  return 1 - ( (Math.pow(D,3)* N) /  (71785 * Math.pow(d,4)) );
+}
+
+function g2(D,d){
+  return ( (4 * Math.pow(D,2) - (d*D)) / (12566 *  ( (D*Math.pow(d,3)) - Math.pow(d,4)) ) ) + ( 1 / (5108 * Math.pow(d,2)) ) - 1;
+}
+
+function g3(N,D,d){
+  return 1 - ( (140.5 * d) / (Math.pow(D,2) * N) );
+}
+
+function g4(D,d){
+  return ( (D+d) / 1.5 )  - 1;
+}
+
+
+//2D constraint validator
+function max_fx(x1,x2){
+  return ( Math.pow(Math.sin(2*Math.PI*x1),3) * Math.sin(2*Math.PI*x2) ) / ( Math.pow(x1,3) * (x1+x2) );
+}
+
+function mf_g1(x1,x2){
+  return Math.pow(x1,2) - x2 + 1;
+}
+
+function mf_g2(x1,x2){
+  return 1 - x1 + (Math.pow(x2 - 4,2));
+}

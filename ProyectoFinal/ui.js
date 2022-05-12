@@ -14,6 +14,7 @@ let pf;
 let tries;
 let population = 0;
 let grap3d = true;
+let pso_memory = new Array();
 
 
 function historyUpdateBfo(generationPoints) {
@@ -33,21 +34,10 @@ function historyUpdateBfo(generationPoints) {
   history.generations.push(points);
 }
 
-function getFunction(functionName) {
-  let returnFunc;
-  if(functionName === "rastrigin") {
-    returnFunc = rastrigin;
-  } else if(functionName === "dropwave") {
-    returnFunc = dropwave;
-  } else if(functionName === "ackley") {
-    returnFunc = ackley;
-  } else if(functionName === "sphere") {
-    returnFunc = sphere;
-  } else if(functionName === "booth") {
-    returnFunc = booth;
-  }
-  return returnFunc;
+function addMemoryPSO(g) {
+  pso_memory.push(g);
 }
+
 
 function startExec() {
   history.generations = [];
@@ -80,7 +70,7 @@ function startExec() {
 
   
 
-
+  report("BFO***********************************");
   bfoObj = new BFO(p,S_bacteria,Nc,Ns,Nre,Ned,Ped,Ci,[x1_l,x2_l,x3_l],[x1_u,x2_u,x3_u],spring_weight,report);
   bfoObj.exec(historyUpdateBfo);
 
@@ -96,6 +86,19 @@ function startExec() {
   //c1 learning rate factor
   //c2 learning rate factor
   //no iter
+  let generations = $("#generations").val();
+  let pso_w = $("#pso_w").val();
+  let pso_c1 = $("#pso_c1").val();
+  let pso_c2 = $("#pso_c2").val();
+  report("PSO***********************************");
+  pso(pso_w,pso_c1,pso_c2,100,[x1_l,x2_l,x3_l],[x1_u,x2_u,x3_u],spring_weight,generations,addMemoryPSO,report)
+
+  report("GA***********************************");
+  let ga = new GA();
+  let population = S_bacteria;
+  mutationRate = .6;
+  ga.exec(population, generations, spring_weight, mutationRate,[x1_l,x2_l,x3_l],[x1_u,x2_u,x3_u]);
+
 
   //ED (because of recombination) DE/best/2/bin
   //Gen
