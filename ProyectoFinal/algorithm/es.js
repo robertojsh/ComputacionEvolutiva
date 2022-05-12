@@ -130,7 +130,24 @@ class ES {
     }
     
     population.sort((a,b) => {
-      return a.z > b.z;
+      // add logic here
+      let results1 = getFeasibilityResults(a); 
+      let results2 = getFeasibilityResults(b);
+
+      // 
+      if(results1.isFeasible && results2.isFeasible) {
+        return a.z > b.z;
+      } else if(results1.isFeasible && !results2.isFeasible) {
+        return a;
+      } else if(!results1.isFeasible && results2.isFeasible) {
+        return b;
+      } else {
+        if(results1.summation < results2.summation) {
+          return a;
+        } else {
+          return b;
+        }
+      }      
     });
 
     let newPopulation = population.slice(0, mu);

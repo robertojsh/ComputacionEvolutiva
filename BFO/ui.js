@@ -93,7 +93,7 @@ function runTest(){
 }
 
 function runTestCSV() {
-  let runs = 1;
+  let runs = 30;
   let objFunctions = ["rastrigin", "ackley", "sphere", "booth"];
   let activeFunc;
   let data = [];
@@ -101,7 +101,6 @@ function runTestCSV() {
   let Nc = parseInt(document.getElementById("Nc").value);
   let Nre = parseInt(document.getElementById("Nre").value);
   let Ned = parseInt(document.getElementById("Ned").value);
-  let LAST_INDEX = (Nc * Nre * Ned) - 1;
 
   objFunctions.forEach((func) => {
     document.getElementById(func).checked = true;  
@@ -110,7 +109,6 @@ function runTestCSV() {
 
       results = [];
       startExec();   
-      console.log(history.generations[history.generations.length-1]);
       let bestRes = getBest(history.generations[history.generations.length-1]);
       results.push(bestRes.x);
       results.push(bestRes.y);
