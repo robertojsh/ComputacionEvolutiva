@@ -211,12 +211,25 @@ function getBest(gen){
 }
 
 
+function updateAlgorithmUI(selectedAlgorithm) {
+  let algorithmList = [ "bfo", "es", "de", "pso"];
+  document.getElementById(selectedAlgorithm+"_container").style.display = "";
+  for(let i=0; i<algorithmList.length; i++) {
+    let algorithm = algorithmList[i];
+    if(algorithm == selectedAlgorithm) {
+      continue;
+    }
+    document.getElementById(algorithm+"_container").style.display = "none";
+  }
+}
+
 window.onload = function() {
   
   let nextGenBtn = document.getElementById("nextGenBtn");
   let prevGenBtn = document.getElementById("prevGenBtn");
   let genIdInput = document.getElementById("generationId");
   let playBtn = document.getElementById("playBtn");
+  let algorithmsDropdown = document.getElementById("algorithmSelected");
 
   playBtn.addEventListener("click",play);
 
@@ -241,4 +254,9 @@ window.onload = function() {
   genIdInput.addEventListener("change", () => {
     updateGraphic(parseInt(genIdInput.value));
   });
+
+  algorithmsDropdown.addEventListener("change", (event) => {
+    updateAlgorithmUI(event.target.value);
+  });
+  updateAlgorithmUI(document.getElementById("algorithmSelected").value);
 };

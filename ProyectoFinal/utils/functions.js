@@ -66,4 +66,57 @@ function mf_g1(x1,x2){
 
 function mf_g2(x1,x2){
   return 1 - x1 + (Math.pow(x2 - 4,2));
+
+/*
+  D = Coil Diameter 
+  d = Wire Diameter
+  N = # of active coils
+*/
+let constrainMinimumDeflection = (coilDiameter, wireDiameter, coilNumber) => {
+  return 1 - ( (Math.pow(coilDiameter,3) * coilNumber) / ( 71785 * Math.pow(wireDiameter, 4)) );
+}
+
+let constrainShearStress = (coilDiameter, wireDiameter, coilNumber) => {
+  return ( (4*Math.pow(coilDiameter,2) - coilDiameter*wireDiameter) / (12566*(coilDiameter * Math.pow(wireDiameter,3)-Math.pow(wireDiameter,4))) ) + (1/(5108*Math.pow(wireDiameter,2))) - 1;
+} // 4 - 1 / 12566*
+
+let constrainSurgeFrequency = (coilDiameter, wireDiameter, coilNumber)  => {
+  return 1 - (140.45*coilDiameter / (Math.pow(wireDiameter,2)*coilNumber));
+}
+
+let constrainOutsideDiameter = (coilDiameter, wireDiameter, coilNumber)  =>{
+  return (coilDiameter + wireDiameter)/1.5 - 1;
+}
+
+let constraintFunctionsList = [
+  constrainMinimumDeflection,
+  constrainShearStress,
+  constrainSurgeFrequency,
+  constrainOutsideDiameter
+];
+/*
+springObject[0] - COIL DIAMETER
+springObject[1] - WIRE DIAMETER
+springObject[2] - # ACTIVE COILS
+*/
+function getFeasibilityResults(springObject) {
+  let resultObject = {};
+  let summation = 0;
+  let isFeasible = true;
+  let constrainFunction;
+  let result;
+
+  for(let i=0; i<constraintFunctionsList.length; i++) {
+    constrainFunction = constraintFunctionsList[i];
+    result = constrainFunction(springObject[0], springObject[1], springObject[2]);
+    if(result > 0) {
+      isFeasible = false;
+    }
+    summation += result;
+    resultObject[constrainFunction.name] = result;
+  }
+
+  resultObject["isFeasible"] = isFeasible;
+  resultObject["summation"] = summation;
+  return resultObject;
 }
