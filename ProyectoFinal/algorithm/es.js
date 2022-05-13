@@ -1,177 +1,168 @@
 class ES {
-  constructor() { 
-
+  constructor(generations, variance, dimension, objectiveFunc, boundariesArray, mu, lambda, compareFunction, constrainList) { 
+    this.generations = generations;
+    this.variance = variance;
+    this.stdDev = Math.sqrt(variance);
+    this.dimension = dimension;
+    this.objectiveFunc = objectiveFunc;
+    this.boundariesArray = boundariesArray;
+    this.mu = mu;
+    this.lambda = lambda;
+    this.compareFunction = compareFunction;
+    this.constraintFunctionsList = constrainList;
+    this.generationList = [];
+    //this.historyUpdateFunc = historyUpdateFunc;
   }
 
-  exec(esVersion, generations, variance, objectiveFunc, xl, xu, yl, yu, mu, lambda, historyUpdateFunc) {
-    if(esVersion === "1+1-ES" || esVersion === "1+1-ES-Adap") {
-      let adjustmentEnabled = (esVersion === "1+1-ES-Adap");
-      this.one_plus_one_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, adjustmentEnabled, historyUpdateFunc);
-    } else if(esVersion === "m+l-ES" || esVersion == "m_l-ES") {
-      let onlyChildren = (esVersion === "m_l-ES");
-      this.mu_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, mu, lambda, onlyChildren, historyUpdateFunc);
-    } 
+  exec() {
+    this.mu_lambda_ES();
   }
 
-  one_plus_one_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, adjustmentEnabled, historyUpdateFunc) {
-    let stdDev = Math.sqrt(variance);
-    let xp = new Individual(xl, xu, yl, yu);
-    xp.z = objectiveFunc(xp.x, xp.y);
-    let xh = {};
-    let ne = 0;
-    for(let gen = 0; gen < generations; gen++) {
-      let r = this.createRandomVector(2, stdDev);
-      xh.x = xp.x + r[0];
-      xh.y = xp.y + r[1]; 
-
-      let xhzTemp = objectiveFunc(xh.x, xh.y);
-      let xpzTemp = objectiveFunc(xp.x, xp.y);
-      if(xhzTemp < xpzTemp) {    
-        ne += 1;    
-        xp = {
-          x: xh.x,
-          y: xh.y,
-          z: xhzTemp
-        }
-      }
-      if(adjustmentEnabled) {
-        stdDev = this.adjustStdDev(stdDev, gen, ne);
-      }      
-      historyUpdateFunc([xp]);
-    }
-    return xp;
-  }
-
-  mu_lambda_ES(generations, variance, objectiveFunc, xl, xu, yl, yu, mu, lambda, onlyChildren, historyUpdateFunc) {
-    let stdDev = Math.sqrt(variance);
-    let xpArray = this.initializeIndividuals(mu, stdDev, xl, xu, yl, yu);
+  mu_lambda_ES() {
+    let xpArray = this.initializeIndividuals();
     
-    for(let gen=0; gen < generations; gen++) {
+    for(let gen=0; gen < this.generations; gen++) {
 
       let childrenArray = new Array();
-      for(let counter=0; counter < lambda; counter++) {
-        let selectedParentIndexes = this.selectParentIndexes(mu);
-        console.log(selectedParentIndexes);
+      for(let counter=0; counter < this.lambda; counter++) {
+        let selectedParentIndexes = this.selectParentIndexes();
         let parentOne = xpArray[selectedParentIndexes[0]];
         let parentTwo = xpArray[selectedParentIndexes[1]];
          // RSI
         let child = this.createChild(parentOne, parentTwo);
-        console.log(child);
-        let rx = this.createRandomVector(1, child.xStdDev);
-        let ry = this.createRandomVector(1, child.yStdDev);
-        console.log(rx, ry);
-        child.x = child.x + rx[0];
-        child.y = child.y + ry[0];
+        let randomVec = this.createRandomVector(child);
+
+        for(let i=0; i<this.dimension; i++) {
+          child.dimensionArray[i] = child.dimensionArray[i] + randomVec[i];
+        }
         childrenArray.push(child);
       }
 
       //  (m+l)-ES
       let population = xpArray.concat(childrenArray);
-      // (m,l)-ES
-      if(onlyChildren) { 
-        population = childrenArray;
-      }
-      xpArray = this.selectBest(mu, population, objectiveFunc);
-      historyUpdateFunc(xpArray);
+    
+      xpArray = this.selectBest(population);
+      this.generationList.push(xpArray);
+      //historyUpdateFunc(xpArray);
     }
   }
 
-  createRandomVector(dimension, stdDev) {
+  createRandomVector(child) {
     let r = new Array();
-    for(let counter=0; counter < dimension; counter++) {
-      r.push(this.randn_bm(stdDev));
+    for(let counter=0; counter < this.dimension; counter++) {
+      r.push(this.randn_bm(child.stdDevArray[counter]));
     }
     return r;
   }
 
-  adjustStdDev(stdDev, gen, ne) {
-    let newStdDev = stdDev;
-    let p = ne / gen;
-    if(p < 0.2) {
-      newStdDev = Math.pow(0.817,2) * stdDev
-    } else if(p > 0.2) {
-      newStdDev = stdDev / Math.pow(0.817,2);
-    }
-    return newStdDev;
-  }
-
-  initializeIndividuals(mu, stdDev, xl, xu, yl, yu) {
-    let individualsArray = new Array(mu);
-    for(let i=0; i < mu; i++) {
-      individualsArray[i] = new Individual(xl, xu, yl, yu);
-      individualsArray[i].xStdDev = 1 + (stdDev - 1) * Math.random();
-      individualsArray[i].yStdDev = 1 + (stdDev - 1) * Math.random();
+  initializeIndividuals() {
+    let individualsArray = new Array(this.mu);
+    for(let i=0; i < this.mu; i++) {
+      individualsArray[i] = new Individual(this.dimension, this.stdDev, this.boundariesArray);      
     }
     return individualsArray;
   }
 
-  selectParentIndexes(mu) {
-    let indexOne = getRandomInt(mu);
-    let indexTwo = getRandomInt(mu);
+  selectParentIndexes() {
+    let indexOne = getRandomInt(this.mu);
+    let indexTwo = getRandomInt(this.mu);
     while(indexOne === indexTwo) {
-      indexTwo = getRandomInt(mu);
+      indexTwo = getRandomInt(this.mu);
     }
     return [indexOne, indexTwo];
   }
 
   createChild(parentOne, parentTwo) {
     // Intermediate
-    let child = new Individual(0,0,0,0);
-    child.x = (parentOne.x + parentTwo.x) / 2;
-    child.y = (parentOne.y + parentTwo.y) / 2;
-    child.xStdDev = (parentOne.xStdDev + parentTwo.xStdDev) / 2;
-    child.yStdDev = (parentOne.yStdDev + parentTwo.yStdDev) / 2;    
+    let child = new Individual(this.dimension, this.stdDev, this.boundariesArray);
+    for(let i=0; i<this.dimension; i++) {
+      child.dimensionArray[i] = (parentOne.dimensionArray[i] + parentTwo.dimensionArray[i]) / 2;
+      child.stdDevArray[i] = (parentOne.stdDevArray[i] + parentTwo.stdDevArray[i]) / 2;
+    }
     return child;
   }
 
-  selectBest(mu, population, objectiveFunc) {
+  createRandomVector() {
+    let r = new Array();
+    for(let counter=0; counter < this.dimension; counter++) {
+      r.push(this.randn_bm());
+    }
+    return r;
+  }
+
+  selectBest(population) {
+    let fitnessIndex = this.dimension;
     for(let i=0; i < population.length; i++) {
-      population[i].z = objectiveFunc(population[i].x, population[i].y);
+      population[i].dimensionArray[fitnessIndex] = this.objectiveFunc(...population[i].dimensionArray);
+      population[i].results = this.getFeasibilityResults(population[i].dimensionArray);
     }
     
-    population.sort((a,b) => {
-      // add logic here
-      let results1 = getFeasibilityResults(a); 
-      let results2 = getFeasibilityResults(b);
-
-      // 
-      if(results1.isFeasible && results2.isFeasible) {
-        return a.z > b.z;
-      } else if(results1.isFeasible && !results2.isFeasible) {
-        return a;
-      } else if(!results1.isFeasible && results2.isFeasible) {
-        return b;
-      } else {
-        if(results1.summation < results2.summation) {
-          return a;
-        } else {
-          return b;
-        }
-      }      
-    });
-
-    let newPopulation = population.slice(0, mu);
-    console.log(newPopulation);
+    population.sort(this.compareFunction);
+    let newPopulation = population.slice(0, this.mu);
     return newPopulation;
   }
 
-  randn_bm(stdDev) {
+  randn_bm() {
     let u = 0, v = 0;
     while(u === 0) u = Math.random(); //Converting [0,1) to (0,1)
     while(v === 0) v = Math.random();
     let num = Math.sqrt( -2.0 * Math.log( u ) ) * Math.cos( 2.0 * Math.PI * v );
     num = num / 10.0 + 0.5; // Translate to 0 -> 1
     if (num > 1 || num < 0) return randn_bm() // resample between 0 and 1
-    return (num - 0.5) * stdDev;
+    return (num - 0.5) * this.stdDev;
+  }
+
+  getFeasibilityResults(springDataArray) {
+    let resultObject = {};
+    let summation = 0;
+    let isFeasible = true;
+    let constrainFunction;
+    let result;
+
+    for(let i=0; i<this.constraintFunctionsList.length; i++) {
+      constrainFunction = this.constraintFunctionsList[i];
+      result = constrainFunction(...springDataArray);
+      if(result > 0) {
+        isFeasible = false;
+      }
+      summation += Math.max(0, result);
+      resultObject[constrainFunction.name] = result;
+    }
+
+    resultObject["isFeasible"] = isFeasible;
+    resultObject["summation"] = summation;
+    return resultObject;
+  }
+
+  getGeneration(generationNumber) {
+    return this.generationList[generationNumber];
+  }
+
+  getAllGenerations() {
+    return this.generationList;
   }
 }
 
+/*
+  Indexes:
+  0 = Coil Diameter
+  1 = Wire Diameter
+  2 = # Active Coils
+  3 OR DimensionNumber = fitness
+
+  boundariesArray: [ {upper:10, lower:-10} , ... ]
+*/
 class Individual {
-  constructor(xl, xu, yl, yu) {
-    this.x = xl + (xu - xl) * Math.random();
-    this.y = yl + (yu - yl) * Math.random();
-    this.z = 0;
-    this.xStdDev = 0;
-    this.yStdDev = 0;
+  constructor(dimension, stdDev, boundariesArray) {
+    this.dimensionArray = [];
+    this. stdDevArray = [];
+    for(let i=0; i<dimension; i++) {
+      let boundaries = boundariesArray[i];
+      let upper = boundaries.upper;
+      let lower = boundaries.lower;
+      this.dimensionArray.push(lower + (upper - lower) * Math.random());
+      this.stdDevArray.push(1 + (stdDev - 1) * Math.random());
+    }
+    this.dimensionArray.push = 0;
   }
 }

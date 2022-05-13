@@ -115,10 +115,24 @@ class DE {
   }  
 }
 
+/*
+  Indexes:
+  0 = Coil Diameter
+  1 = Wire Diameter
+  2 = # Active Coils
+  3 OR lenght-1 = fitness
+
+  boundariesArray: [ {upper:10, lower:-10} , ... ]
+*/
 class Individual {
-  constructor(xl, xu, yl, yu) {
-    this.x = xl + (xu - xl) * Math.random();
-    this.y = yl + (yu - yl) * Math.random();
-    this.z = 0;
+  constructor(dimension, boundariesArray) {
+    this.values = [];
+    for(let i=0; i<dimension; i++) {
+      let boundaries = boundariesArray[i];
+      let upper = boundaries.upper;
+      let lower = boundaries.lower;
+      this.values.push(lower + (upper - lower) * Math.random());
+    }
+    this.values.push = 0;
   }
 }

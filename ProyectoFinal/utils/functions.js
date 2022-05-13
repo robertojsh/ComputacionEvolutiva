@@ -64,14 +64,18 @@ function mf_g1(x1,x2){
   return Math.pow(x1,2) - x2 + 1;
 }
 
-function mf_g2(x1,x2){
+function mf_g2(x1,x2) {
   return 1 - x1 + (Math.pow(x2 - 4,2));
-
+}
 /*
   D = Coil Diameter 
   d = Wire Diameter
   N = # of active coils
 */
+function springWeight(coilDiameter, wireDiameter, coilNumber){
+  return (coilNumber + 2) * (coilDiameter * Math.pow(wireDiameter,2));
+}
+
 let constrainMinimumDeflection = (coilDiameter, wireDiameter, coilNumber) => {
   return 1 - ( (Math.pow(coilDiameter,3) * coilNumber) / ( 71785 * Math.pow(wireDiameter, 4)) );
 }
@@ -88,7 +92,25 @@ let constrainOutsideDiameter = (coilDiameter, wireDiameter, coilNumber)  =>{
   return (coilDiameter + wireDiameter)/1.5 - 1;
 }
 
-let constraintFunctionsList = [
+function paperFunction(x1, x2) {
+  return Math.pow(Math.sin(2*Math.PI*x1),3) * Math.sin(2*Math.PI*x2) / Math.pow(x1, 3) * (x1 + x2);
+}
+
+function paperConstrain1(x1, x2) {
+  return Math.pow(x1, 2) - x2 + 1;
+}
+
+function paperConstrain2(x1, x2) {
+  return 1 - x1 + Math.pow((x2 - 4), 2);
+}
+
+let paperConstrains = [
+  paperConstrain1,
+  paperConstrain2
+];
+
+let constrainsFunctionsList = [
+  springWeight,
   constrainMinimumDeflection,
   constrainShearStress,
   constrainSurgeFrequency,
@@ -99,24 +121,61 @@ springObject[0] - COIL DIAMETER
 springObject[1] - WIRE DIAMETER
 springObject[2] - # ACTIVE COILS
 */
-function getFeasibilityResults(springObject) {
-  let resultObject = {};
-  let summation = 0;
-  let isFeasible = true;
-  let constrainFunction;
-  let result;
 
-  for(let i=0; i<constraintFunctionsList.length; i++) {
-    constrainFunction = constraintFunctionsList[i];
-    result = constrainFunction(springObject[0], springObject[1], springObject[2]);
-    if(result > 0) {
-      isFeasible = false;
+function paperConstrainGraphic1(x1) {
+  return Math.pow(x1, 2) + 1;
+}
+
+function paperConstrainGraphic2(x1) {
+  /*if(x1 >= 1) {
+    return Math.sqrt(x1 - 1) + 4;
+  } else {
+    return -1 * Math.sqrt(x1-1) + 4;
+  }*/
+  return Math.pow(x1-4, 2) + 1;
+}
+
+function minimizeCompareFunction(a, b) {
+  if(a.results.isFeasible && b.results.isFeasible) {
+    if(a.dimensionArray[fitnessIndex] < b.dimensionArray[fitnessIndex]) {
+      return -1;
+    } else if(a.dimensionArray[fitnessIndex] > b.dimensionArray[fitnessIndex]) {
+      return 1; 
     }
-    summation += result;
-    resultObject[constrainFunction.name] = result;
-  }
+    return 0;
+  } else if(a.results.isFeasible && !b.results.isFeasible) {
+    return -1;
+  } else if(!a.results.isFeasible && b.results.isFeasible) {
+    return 1;
+  } else {
+    if(a.results.summation < b.results.summation) {
+      return -1;
+    } else if(a.results.summation > b.results.summation) {
+      return 1;
+    } 
+    return 0;
+  }      
+}
 
-  resultObject["isFeasible"] = isFeasible;
-  resultObject["summation"] = summation;
-  return resultObject;
+function maximizeCompareFunction(a, b) {
+  let fitnessIndex = a.dimensionArray.length;
+  if(a.results.isFeasible && b.results.isFeasible) {
+    if(a.dimensionArray[fitnessIndex] > b.dimensionArray[fitnessIndex]) {
+      return -1;
+    } else if(a.dimensionArray[fitnessIndex] < b.dimensionArray[fitnessIndex]) {
+      return 1; 
+    }
+    return 0;
+  } else if(a.results.isFeasible && !b.results.isFeasible) {
+    return -1;
+  } else if(!a.results.isFeasible && b.results.isFeasible) {
+    return 1;
+  } else {
+    if(a.results.summation < b.results.summation) {
+      return -1;
+    } else if(a.results.summation > b.results.summation) {
+      return 1;
+    } 
+    return 0;
+  }      
 }

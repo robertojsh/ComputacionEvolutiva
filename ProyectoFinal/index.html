@@ -16,6 +16,7 @@
     <script src="algorithm/bfo.js"></script>
     <script src="algorithm/pso.js"></script>
     <script src="algorithm/ga.js"></script>
+    <script src="algorithm/es.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.9.0.min.js"></script>
 
 </head>
@@ -31,10 +32,15 @@
     </div>
     <div class="row">
       <div class="col-3">
-        <div class="mb-2">Minimize the Weight of a Tension Spring:</div>
+        <div class="">Minimize the Weight of a Tension Spring:</div>
         <div class="form-check">
-          <input class="form-check-input" type="radio" checked name="functionSelected" value="rastrigin" id="rastrigin">
-          <label class="form-check-label" for="rastrigin">(N + 2)Dd<sup>2</sup></label>
+          <input class="form-check-input" type="radio" checked name="functionSelected" value="spring" id="spring">
+          <label class="form-check-label" for="spring">(N + 2)Dd<sup>2</sup></label>          
+        </div>
+        <div class="mt-2">Paper Function:</div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="functionSelected" value="paper" id="paper">
+          <label class="form-check-label" for="spring">sin<sup>3</sup>(2πx) sin(2πy) / x<sup>3</sup>(x + y)</label>
         </div>
         <div class="mt-3">
           <span class="mt-4 mb-3" style="font-weight: bold;">Constraints:</span><br>
