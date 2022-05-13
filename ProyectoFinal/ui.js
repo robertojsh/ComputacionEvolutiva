@@ -93,7 +93,7 @@ function startExec() {
     //BFO (Maybe because of the modification proposed by Mezura Montes) and N dimentional
     //search space dim
     //Total amount of bact
-    p = 3;
+    p = dimension;
     S_bacteria = parseInt(document.getElementById("S_bacteria").value);
     Nc = parseInt(document.getElementById("Nc").value);
     Ns = parseInt(document.getElementById("Ns").value);
@@ -102,11 +102,9 @@ function startExec() {
     Ped = parseFloat(document.getElementById("Ped").value);
     Ci = parseFloat(document.getElementById("Ci").value);
 
-    
-
-    report("BFO***********************************");
-    bfoObj = new BFO(p,S_bacteria,Nc,Ns,Nre,Ned,Ped,Ci,[x1_l,x2_l,x3_l],[x1_u,x2_u,x3_u],spring_weight,report);
-    bfoObj.exec(historyUpdateBfo);
+    bfoObj = new BFO(p,S_bacteria,Nc,Ns,Nre,Ned,Ped,Ci,boundariesArray,activeFunc,compareFunction,constrainList);
+    bfoObj.exec();
+    algorithmObject = bfoObj;
   } else if(algorithmSelected === "pso") {
 
     //Total amount of step (Chemotaxis)

@@ -1,6 +1,6 @@
 class BFO {
 
-    constructor(p, S, Nc, Ns,Nre, Ned, Ped,Ci, l, u, f) {
+    constructor(p, S, Nc, Ns, Nre, Ned, Ped, Ci, boundariesArray, f, compareFunction, constraintList) {
         this.p = p;//Search Space dimension
         this.S = S;//Total amount of bacteria
         this.Nc = Nc;//Total amount of step (Chemotaxis)
@@ -10,8 +10,7 @@ class BFO {
         this.Ped = Ped;//Elimination and dispersal probability
         this.Ci = Ci;//	the run-length unit 
 
-        this.l = l;//bottom of values
-        this.u = u;//hat of values
+        this.boundariesArray = boundariesArray;
 
         //FITNESS constants
         this.d_attractant = 0.1;
@@ -21,18 +20,23 @@ class BFO {
 
         this.f = f;//objective function
 
+        this.compareFunction = compareFunction;
+        this.constraintList = constraintList;
+
 
         this.population = new Array(this.S);
+
+        this.generationList = [];
 
     }
 
     //Algorithm BFO
-    exec(historyUpdate) {
+    exec() {
 
         //Step1 : Initialize Happened at construction
-        this.initialize(this.p,this.l,this.u,this.f);
+        this.initialize();
 
-        
+
 
         //Step 2 : Elimination-Dispersal Loop l=l+1
         for (let l = 0; l < this.Ned; l++) {
@@ -40,10 +44,15 @@ class BFO {
             for (let k = 0; k < this.Nre; k++) {
                 //Step 4: Chemotaxis Loop
                 for (let j = 0; j < this.Nc; j++) {
+
+                    let startTime = performance.now();
+
                     this.chemotaxis();
 
-                    if(historyUpdate)
-                        historyUpdate(this.population);
+                    let endTime = performance.now();
+
+
+                    this.logGeneration(this.population, endTime - startTime);
 
                     //Step 5: if j < Nc continue
                 }
@@ -58,16 +67,17 @@ class BFO {
             //Step 8: Elimination-dispersal: For i=1,2, S with prob Ped, eliminate and disperse each bacteria
             this.ElminationDispersal();
 
-            
+
 
         }
 
     }
 
     //Initialize all the values (population)
-    initialize(p, l, u, f) {
+    initialize() {
         for (let i = 0; i < this.S; i++) {
-            this.population[i] = new Bacteria(p, l, u, f,this.isFeasible);
+            this.population[i] = new Bacteria(this.p, this.boundariesArray, this.f);
+            this.population[i].results = this.getFeasibilityResults(this.population[i].dimensionArray);
         }
     }
 
@@ -80,7 +90,7 @@ class BFO {
         for (let i = 0; i < this.S; i++) {
 
             //[b] Compute fitness function
-            for(let i=0;i<this.population.length;i++){
+            for (let i = 0; i < this.population.length; i++) {
                 this.computeFitness(this.population[i]);
             }
 
@@ -95,6 +105,7 @@ class BFO {
 
             //[f] Compute J(i,j + 1,k,l) + 𝐽𝑐𝑐(𝜃_i(j+1,k,l),𝑃(𝑗 + 1,𝑘,𝑒))
             moved_bacteria.computeObjectiveFunction();
+            moved_bacteria.results = this.getFeasibilityResults(moved_bacteria.dimensionArray);
             this.computeFitness(moved_bacteria);
 
 
@@ -107,14 +118,15 @@ class BFO {
             for (let m = 0; m < this.Ns; m++) {
                 //if J(i,j+1,k,l) < Jlast let Jlast = J(i,j+1,k,l) = new fitness
                 if (moved_bacteria.fitness < J_last
-                    && moved_bacteria.fitness >0
-                    && this.isFeasible(moved_bacteria)) {
+                    && moved_bacteria.fitness > 0
+                    && this.getFeasibilityResults(moved_bacteria.dimensionArray).isFeasible) {
 
                     J_last = moved_bacteria.fitness;
 
-                    this.swim(moved_bacteria,delta);
+                    this.swim(moved_bacteria, delta);
 
                     moved_bacteria.computeObjectiveFunction();
+                    moved_bacteria.results = this.getFeasibilityResults(moved_bacteria.dimensionArray);
                     this.computeFitness(moved_bacteria);
 
                     this.population[i] = moved_bacteria;
@@ -136,21 +148,21 @@ class BFO {
 
         //Z i=1 -> S -D attractant exp
         for (let i = 0; i < this.S; i++) {
-            
+
 
             //get the sum m=1 -> p of (θm - θim)2
             let sumThetaSq = 0;
             for (let m = 0; m < this.p; m++) {
-                sumThetaSq += Math.pow(bacteria.position[m] - this.population[i].position[m], 2);
+                sumThetaSq += Math.pow(bacteria.dimensionArray[m] - this.population[i].dimensionArray[m], 2);
             }
 
             //[-d_attractant exp (-w_attractant * sumThetaSqrt] + [h_repellant exp (-w_repellant * sumThetaSqrt)]
-            totalSumVal = totalSumVal + ((-1 * this.d_attractant) * Math.exp((-1 * this.w_attractant) * sumThetaSq)) 
+            totalSumVal = totalSumVal + ((-1 * this.d_attractant) * Math.exp((-1 * this.w_attractant) * sumThetaSq))
             totalSumVal = totalSumVal + (this.h_repellant * Math.exp((-1 * this.w_repellant) * sumThetaSq));
         }
 
         //J(i,j,k,l) + 𝐽𝑐𝑐(𝜃,𝑃(𝑗,𝑘,𝑒))
-        bacteria.fitness = bacteria.z + totalSumVal;
+        bacteria.fitness = bacteria.dimensionArray[this.p] + totalSumVal;
     }
 
 
@@ -175,13 +187,13 @@ class BFO {
         moved_bacteria.computeObjectiveFunction = bacteria.computeObjectiveFunction;
 
         for (let i = 0; i < this.p; i++) {
-            moved_bacteria.position[i] = bacteria.position[i] + (this.Ci * (delta[i] / norm));
+            moved_bacteria.dimensionArray[i] = bacteria.dimensionArray[i] + (this.Ci * (delta[i] / norm));
 
             //Not looking outside the search space
-            if(moved_bacteria.position[i] > this.u)
-                moved_bacteria.position[i] = this.u;
-            if(moved_bacteria.position[i] < this.l)
-                moved_bacteria.position[i] = this.l;
+            if (moved_bacteria.dimensionArray[i] > this.boundariesArray[i].upper)
+                moved_bacteria.dimensionArray[i] = this.boundariesArray[i].upper;
+            if (moved_bacteria.dimensionArray[i] < this.boundariesArray[i].lower)
+                moved_bacteria.dimensionArray[i] = this.boundariesArray[i].lower;
         }
 
         return moved_bacteria;
@@ -189,14 +201,14 @@ class BFO {
 
     swim(bacteria, delta) {
         let norm = this.getNorm(delta);
-        for (let i = 0; i < this.p; i++){
-            bacteria.position[i] = bacteria.position[i] + (this.Ci * (delta[i] / norm));
+        for (let i = 0; i < this.p; i++) {
+            bacteria.dimensionArray[i] = bacteria.dimensionArray[i] + (this.Ci * (delta[i] / norm));
 
             //Not looking outside the search space
-            if(bacteria.position[i] > this.u)
-                bacteria.position[i] = this.u;
-            if(bacteria.position[i] < this.l)
-                bacteria.position[i] = this.l;
+            if (bacteria.dimensionArray[i] > this.boundariesArray[i].upper)
+                bacteria.dimensionArray[i] = this.boundariesArray[i].upper;
+            if (bacteria.dimensionArray[i] < this.boundariesArray[i].lower)
+                bacteria.dimensionArray[i] = this.boundariesArray[i].lower;
         }
 
     }
@@ -214,146 +226,108 @@ class BFO {
         return Math.random() * (max - min) + min;
     }
 
-    reproduction(){
-        
+    reproduction() {
+
         // [a] Given k and l computes Health should be done at Chemotaxis step
 
 
         //Sort bacteria and chemotactic parameters C(i) in order of ascending cost j_health (higher means lower health)
-        this.population.sort((a,b) => {
-
-
-            let isFeasibleA = this.isFeasible(a);
-            let isFeasibleB = this.isFeasible(b);
-
-            //1. Between 2 Feasible solutions,the one with the highest fitness value wins
-            if(isFeasibleA && isFeasibleB){
-                if( a.health < b.health)
-                    return -1;
-                if(a.health > b.health)
-                    return 1;
-            }
-
-            //2. If one solution is feasible and the other one is infeasible, the feasible wins
-            if(isFeasibleA && !isFeasibleB)
-                return -1;
-            else if(isFeasibleB && !isFeasibleA)
-                return 1;
-
-            //3. If both are infeasible, the one with the lowest sum of constraint violation is preferred
-            if(!isFeasibleA && !isFeasibleB){
-                let computeConstraintsViolationA = this.computeConstraintsViolation(a);
-                let computeConstraintsViolationB = this.computeConstraintsViolation(b);
-
-                if(computeConstraintsViolationA < computeConstraintsViolationB)
-                    return -1;
-                if(computeConstraintsViolationB < computeConstraintsViolationA)
-                    return 1;
-            }
-
-            return 0;
-        });
+        this.population.sort(this.compareFunction);
 
         //Half of the population dies and the other half splits
         //[b] The Sr bacteria with the highest J_health values dies and the remaining Sr splits
         let Sr = this.S / 2;
-        for(let i=0;i<Sr;i++){
-            this.population[Sr+i] = Object.assign({}, this.population[i]);
-            this.population[Sr+i].computeObjectiveFunction = this.population[i].computeObjectiveFunction;
+        for (let i = 0; i < Sr; i++) {
+            this.population[Sr + i] = Object.assign({}, this.population[i]);
+            this.population[Sr + i].computeObjectiveFunction = this.population[i].computeObjectiveFunction;
 
             //Should we reset the health?
             this.population[i].health = 0;
-            this.population[Sr+i].health = 0;
+            this.population[Sr + i].health = 0;
         }
 
 
     }
 
-    ElminationDispersal(){
+    ElminationDispersal() {
         //Eliminate and disperse each baterium
-        for(let i=0;i<this.S;i++){
+        for (let i = 0; i < this.S; i++) {
 
             let rand_n = Math.random();
 
-            if(rand_n <= this.Ped){
+            if (rand_n <= this.Ped) {
                 //If a bacterium is eliminated, simply disperse another one to a random location
-                this.population[i] = new Bacteria(this.p,this.l,this.u,this.f,this.isFeasible);
-
+                this.population[i] = new Bacteria(this.p, this.boundariesArray, this.f);
+                this.population[i].results = this.getFeasibilityResults(this.population[i].dimensionArray);
             }
         }
     }
 
-    isFeasible(bacteria){
+    getFeasibilityResults(springDataArray) {
+        let resultObject = {};
+        let summation = 0;
+        let isFeasible = true;
+        let constrainFunction;
+        let result;
 
-        if(bacteria.fitness < 0)
-            return false;
+        for (let i = 0; i < this.constraintList.length; i++) {
+            constrainFunction = this.constraintList[i];
+            result = constrainFunction(...springDataArray);
+            if (result > 0) {
+                isFeasible = false;
+            }
+            summation += Math.max(0, result);
+            resultObject[constrainFunction.name] = result;
+        }
 
-        let N = bacteria.position[2];
-        let D = bacteria.position[1];
-        let d = bacteria.position[0];
-        
-        let g1_val = g1(N,D,d);
-        let g2_val = g2(D,d);
-        let g3_val = g3(N,D,d);
-        let g4_val = g4(D,d);
-
-        if( g1_val <= 0
-            && g2_val <= 0
-            && g3_val <= 0
-            && g4_val <= 0)
-            return true;
-
-        return false;
+        resultObject["isFeasible"] = isFeasible;
+        resultObject["summation"] = summation;
+        return resultObject;
     }
 
-    computeConstraintsViolation(bacteria){
-        let N = bacteria.position[2];
-        let D = bacteria.position[1];
-        let d = bacteria.position[0];
-        
-        let g1_val = g1(N,D,d);
-        let g2_val = g2(D,d);
-        let g3_val = g3(N,D,d);
-        let g4_val = g4(D,d);
+    logGeneration(population, time) {
+        let generationObj = {
+            values: population,
+            bestSolutionIndex: 0,
+            executionTime: time,
+        };
 
-        return Math.max(0,g1_val) + Math.max(0,g2_val) + Math.max(0,g3_val) + Math.max(0,g4_val);
+        this.generationList.push(generationObj);
+    }
+
+    getAllGenerations(){
+        return this.generationList;
     }
 }
 
 class Bacteria {
-    constructor(p, l, u, f, isFeasible) {
-        this.position = new Array(p);
-        this.l = l;
-        this.u = u;
+    constructor(p, boundariesArray, f, isFeasible) {
+        this.dimensionArray = new Array();
+
 
         this.f = f;
+
+        this.p = p;
 
         this.isFeasible = isFeasible;
 
         for (let i = 0; i < p; i++) {
-            this.position[i] = this.randomParamValue(this.l[i],this.u[i]);
+            this.dimensionArray.push(this.randomParamValue(boundariesArray[i].lower, boundariesArray[i].upper));
         }
 
         this.computeObjectiveFunction();
+        this.dimensionArray.push = Infinity;
+
         this.fitness = Infinity;
 
         this.health = 0;
     }
 
     computeObjectiveFunction() {
-        this.z = this.f(this.position[0],this.position[1],this.position[2]);
-        
-        if(this.z < best.z
-            && this.z > 0
-            && this.isFeasible(this)){
-            best = { d :this.position[0], D: this.position[1], N : this.position[2] , z: this.z };
-            report("d = " +best.d + ", D = " + best.D + ", N =   " + best.N +  " W = " + best.z);
-        }
+        this.dimensionArray[this.p] = this.f(...this.dimensionArray);
     }
 
-    randomParamValue(lower,upper) {
+    randomParamValue(lower, upper) {
         return lower + (upper - lower) * Math.random();
     }
 }
-
-best = { x: Infinity, y: Infinity, z : Infinity};
