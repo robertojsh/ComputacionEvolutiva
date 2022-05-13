@@ -136,6 +136,7 @@ function paperConstrainGraphic2(x1) {
 }
 
 function minimizeCompareFunction(a, b) {
+  let fitnessIndex = a.dimensionArray.length;
   if(a.results.isFeasible && b.results.isFeasible) {
     if(a.dimensionArray[fitnessIndex] < b.dimensionArray[fitnessIndex]) {
       return -1;
