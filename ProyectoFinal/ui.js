@@ -102,33 +102,18 @@ function startExec() {
     bfoObj = new BFO(p,S_bacteria,Nc,Ns,Nre,Ned,Ped,Ci,boundariesArray,activeFunc,compareFunction,constrainList);
     bfoObj.exec();
     algorithmObject = bfoObj;
-  } else if(algorithmSelected === "pso") {
+  } else if(algorithmSelected === "ga") {
 
-    //Total amount of step (Chemotaxis)
-    //Swims
-    //Reproduction number
-    //Eliminations number
-    //Elimination and dispersal probability
-    //	the run-length unit 
-
-    //PSO control parameters
-    //w inertia
-    //c1 learning rate factor
-    //c2 learning rate factor
-    //no iter
-    let generations = $("#generations").val();
-    let pso_w = $("#pso_w").val();
-    let pso_c1 = $("#pso_c1").val();
-    let pso_c2 = $("#pso_c2").val();
-    report("PSO***********************************");
-    pso(pso_w,pso_c1,pso_c2,100,[x1_l,x2_l,x3_l],[x1_u,x2_u,x3_u],spring_weight,generations,addMemoryPSO,report)
-
-    report("GA***********************************");
-    let ga = new GA();
-    let population = S_bacteria;
+    
+    let N = parseInt(document.getElementById("ga_N").value);;
+    let generations = parseInt(document.getElementById("ga_G").value);
+    let mutationRate = parseFloat(document.getElementById("ga_M").value);
     mutationRate = .6;
-    ga.exec(population, generations, spring_weight, mutationRate,[x1_l,x2_l,x3_l],[x1_u,x2_u,x3_u]);
-  
+   
+    let gaObj = new GA(N, generations,activeFunc,mutationRate,boundariesArray,compareFunction,constrainList);
+    gaObj.exec();
+    algorithmObjectGlobal = gaObj;
+    algorithmObject = gaObj;
   } else if(algorithmSelected === "es") {
     let var2 = parseInt(document.getElementById("var2").value);
     let generations = parseInt(document.getElementById("generations").value);
@@ -281,7 +266,7 @@ function getBest(gen){
 
 
 function updateAlgorithmUI(selectedAlgorithm) {
-  let algorithmList = [ "bfo", "es", "de", "pso"];
+  let algorithmList = [ "bfo", "es", "de", "ga"];
   document.getElementById(selectedAlgorithm+"_container").style.display = "";
   for(let i=0; i<algorithmList.length; i++) {
     let algorithm = algorithmList[i];
