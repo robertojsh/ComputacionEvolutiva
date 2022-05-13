@@ -136,7 +136,7 @@ function paperConstrainGraphic2(x1) {
 }
 
 function minimizeCompareFunction(a, b) {
-  let fitnessIndex = a.dimensionArray.length;
+  let fitnessIndex = a.dimensionArray.length-1;
 
   let a_isFeasible = a.results.isFeasible && (a.dimensionArray[fitnessIndex] > 0);
   let b_isFeasible = b.results.isFeasible && (b.dimensionArray[fitnessIndex] > 0);
@@ -163,7 +163,7 @@ function minimizeCompareFunction(a, b) {
 }
 
 function maximizeCompareFunction(a, b) {
-  let fitnessIndex = a.dimensionArray.length;
+  let fitnessIndex = a.dimensionArray.length-1;
   if(a.results.isFeasible && b.results.isFeasible) {
     if(a.dimensionArray[fitnessIndex] > b.dimensionArray[fitnessIndex]) {
       return -1;
@@ -183,4 +183,11 @@ function maximizeCompareFunction(a, b) {
     } 
     return 0;
   }      
+}
+
+function areSpringMeasuresValid(springObject) {
+  if(springObject[0] <= 0 || springObject[1] <= 0 || springObject[2] <= 0) {
+    return true;
+  }
+  return false;
 }

@@ -48,6 +48,7 @@ function startExec() {
   let compareFunction;
   let constrainList;
   let algorithmObject;
+  let physicalConstrains;
 
   if(activeFunctionString === "paper") {
     activeFunc = paperFunction;
@@ -58,6 +59,7 @@ function startExec() {
     dimension = 2;
     compareFunction = maximizeCompareFunction;
     constrainList = paperConstrains;
+    physicalConstrains = []
   } else {
     activeFunc = springWeight;
     boundariesArray = [
@@ -68,6 +70,7 @@ function startExec() {
     dimension = 3;
     compareFunction = minimizeCompareFunction;
     constrainList = constrainsFunctionsList;
+    physicalConstrains = [areSpringMeasuresValid];
   }
 
   if(algorithmSelected === "bfo") {
@@ -120,7 +123,7 @@ function startExec() {
     let mu = parseInt(document.getElementById("mu").value);
     let lambda = parseInt(document.getElementById("lambda").value);
     
-    let esObj = new ES(generations, var2, dimension, activeFunc, boundariesArray, mu, lambda, compareFunction, constrainList);
+    let esObj = new ES(generations, var2, dimension, activeFunc, boundariesArray, mu, lambda, compareFunction, constrainList, physicalConstrains);
     esObj.exec();
     algorithmObjectGlobal = esObj;
     algorithmObject = esObj;
