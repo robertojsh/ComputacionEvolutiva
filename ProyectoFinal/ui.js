@@ -38,7 +38,7 @@ function addMemoryPSO(g) {
   pso_memory.push(g);
 }
 
-
+let algorithmObjectGlobal;
 function startExec() {
   let algorithmSelected = document.getElementById("algorithmSelected").value;
   let activeFunctionString = document.querySelector('input[name="functionSelected"]:checked').value;
@@ -47,7 +47,6 @@ function startExec() {
   let dimension = 0;
   let compareFunction;
   let constrainList;
-  let generationsHistory;
   let algorithmObject;
 
   if(activeFunctionString === "paper") {
@@ -140,13 +139,22 @@ function startExec() {
     
     let esObj = new ES(generations, var2, dimension, activeFunc, boundariesArray, mu, lambda, compareFunction, constrainList);
     esObj.exec();
+    algorithmObjectGlobal = esObj;
     algorithmObject = esObj;
   } else {
-    //algorithmObject = new DE();
+    //algorithmObjectGlobal = new DE();
   }
 
   if(activeFunctionString === "paper") {
-    let generationToUse = generationsHistory[parseInt(document.getElementById("generations").value)-1];
+    let generationHistory = algorithmObject.getAllGenerations();
+    document.getElementById("generationId").value = generationHistory.length;
+    updateGraphic(generationHistory.length-1);
+  }
+  console.log(algorithmObject);
+  return algorithmObject;
+}
+
+function drawPaperFunction(generationToUse) {  
     let feasibleSolutions = {
       x: [],
       y: []
@@ -181,23 +189,10 @@ function startExec() {
     }
     drawPaper(x, y, x2, y2, feasibleSolutions, unfeasibleSolutions);
     document.getElementById("graphContainer").style.display = "";
-  }
-  console.log(algorithmObject);
-  return algorithmObject;
-}
-
-function runTest(){
-  report("X      |      Y      |      fitness    ");
-  for(let i=0;i<30;i++){
-      startExec();
-      let best = getBest(history.generations[i]);
-      report(best.x + ","+best.y+","+best.z);
-      
-  }
 }
 
 function runTestCSV() {
-  let runs = 3;
+  let runs = 30;
   let data = [];
   data.push("Iteration,Generation,WireDiameter(d),CoilDiameter(D),NumberOfCoils(N),Fitness(W),constrainMinimumDeflection,constrainShearStress,constrainSurgeFrequency,constrainOutsideDiameter,isFeasible,isBest,execTime");
 
@@ -245,10 +240,12 @@ function report(log) {
 }
 
 function updateGraphic(value) {
-  if(value > 0 && value <= generations) {
-    let generationToUse = history.generations[value-1];
-    setBestUI(getBest(generationToUse));
-    draw(functionData, generationToUse,grap3d);
+  let generationsHistory = algorithmObjectGlobal.getAllGenerations();
+  let generationNumber = generationsHistory.length;
+  if(value > 0 && value <= generationNumber) {
+    let generationToUse = generationsHistory[value-1];
+    setBestUI(generationToUse);
+    drawPaperFunction(generationToUse);
   }
 }
 
@@ -261,16 +258,17 @@ function play(){
 function verifyPlay(){
 
   document.getElementById("nextGenBtn").click();
-
+  let generationsHistory = algorithmObjectGlobal.getAllGenerations();
   let current = parseInt(document.getElementById("generationId").value);
-  if(current < history.generations.length)
+  if(current < generationsHistory.length) {
     setTimeout(verifyPlay,400);
+  }
 }
 
-function setBestUI(best){
-  document.getElementById("bestX").value = best.x;
-  document.getElementById("bestY").value = best.y;
-  document.getElementById("bestZ").value = best.z;
+function setBestUI(generationData){  
+  document.getElementById("bestX").value = generationData.values[generationData.bestSolutionIndex].dimensionArray[0];
+  document.getElementById("bestY").value = generationData.values[generationData.bestSolutionIndex].dimensionArray[1];
+  document.getElementById("bestZ").value = generationData.values[generationData.bestSolutionIndex].dimensionArray[2];
 }
 
 function getBest(gen){
