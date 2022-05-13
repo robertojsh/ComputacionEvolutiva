@@ -1,7 +1,16 @@
 class GA {
 
-    constructor() {
+    constructor(N,generations, f, pm,boundariesArray, compareFunction, constraintList) {
+        this.N = N;
+        this.generations = generations;
+        this.f = f;
+        this.pm = pm;
+        
+        this.boundariesArray = boundariesArray;
 
+        this.compareFunction = compareFunction;
+        this.constraintList = constraintList;
+        
     }
 
     generatePopulation(population_size, xl, xu) {
@@ -169,7 +178,7 @@ class GA {
     }
 
 
-    exec(N,generations, f, pm, xl, xu, updateFunction) {
+    exec() {
 
         let total_population = N;
         let iter_generations = 0;

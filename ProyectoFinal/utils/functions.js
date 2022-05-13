@@ -110,7 +110,7 @@ let paperConstrains = [
 ];
 
 let constrainsFunctionsList = [
-  springWeight,
+  //springWeight,
   constrainMinimumDeflection,
   constrainShearStress,
   constrainSurgeFrequency,
@@ -137,16 +137,20 @@ function paperConstrainGraphic2(x1) {
 
 function minimizeCompareFunction(a, b) {
   let fitnessIndex = a.dimensionArray.length;
-  if(a.results.isFeasible && b.results.isFeasible) {
+
+  let a_isFeasible = a.results.isFeasible && (a.dimensionArray[fitnessIndex] > 0);
+  let b_isFeasible = b.results.isFeasible && (b.dimensionArray[fitnessIndex] > 0);
+
+  if(a_isFeasible && b_isFeasible) {
     if(a.dimensionArray[fitnessIndex] < b.dimensionArray[fitnessIndex]) {
       return -1;
     } else if(a.dimensionArray[fitnessIndex] > b.dimensionArray[fitnessIndex]) {
       return 1; 
     }
     return 0;
-  } else if(a.results.isFeasible && !b.results.isFeasible) {
+  } else if(a_isFeasible && !b_isFeasible) {
     return -1;
-  } else if(!a.results.isFeasible && b.results.isFeasible) {
+  } else if(!a_isFeasible && b_isFeasible) {
     return 1;
   } else {
     if(a.results.summation < b.results.summation) {
