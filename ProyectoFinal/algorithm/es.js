@@ -11,7 +11,6 @@ class ES {
     this.compareFunction = compareFunction;
     this.constraintFunctionsList = constrainList;
     this.generationList = [];
-    //this.historyUpdateFunc = historyUpdateFunc;
   }
 
   exec() {
@@ -22,7 +21,7 @@ class ES {
     let xpArray = this.initializeIndividuals();
     
     for(let gen=0; gen < this.generations; gen++) {
-
+      let startTime = performance.now();
       let childrenArray = new Array();
       for(let counter=0; counter < this.lambda; counter++) {
         let selectedParentIndexes = this.selectParentIndexes();
@@ -42,8 +41,13 @@ class ES {
       let population = xpArray.concat(childrenArray);
     
       xpArray = this.selectBest(population);
-      this.generationList.push(xpArray);
-      //historyUpdateFunc(xpArray);
+      let endTime = performance.now();
+      let generationObject = {
+        values: xpArray,
+        bestSolutionIndex: 0,
+        executionTime: endTime-startTime
+      };
+      this.generationList.push(generationObject);
     }
   }
 

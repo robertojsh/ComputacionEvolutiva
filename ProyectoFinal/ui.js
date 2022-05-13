@@ -48,6 +48,7 @@ function startExec() {
   let compareFunction;
   let constrainList;
   let generationsHistory;
+  let algorithmObject;
 
   if(activeFunctionString === "paper") {
     activeFunc = paperFunction;
@@ -137,26 +138,27 @@ function startExec() {
     let mu = parseInt(document.getElementById("mu").value);
     let lambda = parseInt(document.getElementById("lambda").value);
     
-    // let esObj = new ES(generations, var2, 3, springWeight, boundariesArray, mu, lambda, maximizeCompareFunction);
     let esObj = new ES(generations, var2, dimension, activeFunc, boundariesArray, mu, lambda, compareFunction, constrainList);
     esObj.exec();
-    generationsHistory = esObj.getAllGenerations();
+    algorithmObject = esObj;
   } else {
-
+    //algorithmObject = new DE();
   }
 
   if(activeFunctionString === "paper") {
-    let generationToUse = generationsHistory[8];
+    let generationToUse = generationsHistory[parseInt(document.getElementById("generations").value)-1];
     let feasibleSolutions = {
       x: [],
       y: []
     };
+
     let unfeasibleSolutions = {
       x: [],
       y: []
     };
-    for(let i=0; i<generationToUse.length; i++) {
-      let indiv = generationToUse[i];
+
+    for(let i=0; i<generationToUse.values.length; i++) {
+      let indiv = generationToUse.values[i];
       if(indiv.results.isFeasible) {
         feasibleSolutions.x.push(indiv.dimensionArray[0]);
         feasibleSolutions.y.push(indiv.dimensionArray[1]);
@@ -165,10 +167,12 @@ function startExec() {
         unfeasibleSolutions.y.push(indiv.dimensionArray[1]);
       }
     }
+
     let x = makeArrRanged(0, 2.5, 100);
     let y = [];
     let x2 = makeArrRanged(2, 6, 100);
     let y2 = [];
+
     for(let i=0; i < 100; i++) {
       y.push(paperConstrainGraphic1(x[i]));
     }
@@ -176,29 +180,10 @@ function startExec() {
       y2.push(paperConstrainGraphic2(x2[i]));
     }
     drawPaper(x, y, x2, y2, feasibleSolutions, unfeasibleSolutions);
-    console.log("Entered");
     document.getElementById("graphContainer").style.display = "";
   }
-    //ED (because of recombination) DE/best/2/bin
-    //Gen
-    //No iter
-    //Cr  recomb constant
-    //Lambda  app factor range of diff
-
-
-
-
-    
-
-    //functionData = calculateFunctionPointsData(activeFunction, xl, xu, xl, xu, CARDINALITY);
-    /*document.getElementById("graphContainer").style.display = "";
-    document.getElementById("generationId").value = history.generations.length;
-    generations = history.generations.length;
-    grap3d = document.getElementById("check3D").checked;
-
-    setBestUI(getBest(history.generations[history.generations.length-1]));*/
-
-    //updateGraphic();
+  console.log(algorithmObject);
+  return algorithmObject;
 }
 
 function runTest(){
@@ -212,32 +197,41 @@ function runTest(){
 }
 
 function runTestCSV() {
-  let runs = 1;
-  let objFunctions = ["rastrigin", "ackley", "sphere", "booth"];
-  let activeFunc;
+  let runs = 3;
   let data = [];
-  data.push("ITERATION,FUNCTION,X,Y,Z");
-  let Nc = parseInt(document.getElementById("Nc").value);
-  let Nre = parseInt(document.getElementById("Nre").value);
-  let Ned = parseInt(document.getElementById("Ned").value);
-  let LAST_INDEX = (Nc * Nre * Ned) - 1;
+  data.push("Iteration,Generation,WireDiameter(d),CoilDiameter(D),NumberOfCoils(N),Fitness(W),constrainMinimumDeflection,constrainShearStress,constrainSurgeFrequency,constrainOutsideDiameter,isFeasible,isBest,execTime");
 
-  objFunctions.forEach((func) => {
-    document.getElementById(func).checked = true;  
-    for(let i=1; i <= runs; i++) {      
-      console.log("Running " + i + ": " + document.getElementById(func).value);
+  document.getElementById("spring").checked = true;  
+  for(let i=1; i <= runs; i++) {      
+    results = [];
+    let algorithmObject = startExec();   
+    let generationsHistory = algorithmObject.getAllGenerations();
+    
+    for(let generationCounter=1; generationCounter <= generationsHistory.length; generationCounter++) {
+      let currentGeneration = generationsHistory[generationCounter-1];
+      let bestGenIndex = currentGeneration.bestSolutionIndex;
+      let generationExecTime = currentGeneration.executionTime;
+      let generationValues = currentGeneration.values;
 
-      results = [];
-      startExec();   
-      console.log(history.generations[history.generations.length-1]);
-      let bestRes = getBest(history.generations[history.generations.length-1]);
-      results.push(bestRes.x);
-      results.push(bestRes.y);
-      results.push(bestRes.z);
-      data.push(`${i},${func},${results[0]},${results[1]},${results[2]}`);
+      generationValues.forEach((indiv, index) => {
+        let indivData = [];
+        indivData.push(i);
+        indivData.push(generationCounter);
+        indivData.push(indiv.dimensionArray[1]);
+        indivData.push(indiv.dimensionArray[0]);
+        indivData.push(indiv.dimensionArray[2]);
+        indivData.push(indiv.dimensionArray[3]);
+        indivData.push(indiv.results.constrainMinimumDeflection);
+        indivData.push(indiv.results.constrainShearStress);
+        indivData.push(indiv.results.constrainSurgeFrequency);
+        indivData.push(indiv.results.constrainOutsideDiameter);
+        indivData.push(indiv.results.isFeasible);
+        indivData.push((index === bestGenIndex));
+        indivData.push(generationExecTime);
+        data.push(indivData.join(","));
+      });
     }
-  });
-
+  }
   download(data.join("\n"), "results.csv", "csv");
 }
 
