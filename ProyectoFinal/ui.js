@@ -193,7 +193,7 @@ function drawPaperFunction(generationToUse) {
 }
 
 function runTestCSV() {
-  let runs = 1;
+  let runs = 30;
   let data = [];
   data.push("Iteration,Generation,WireDiameter(d),CoilDiameter(D),NumberOfCoils(N),Fitness(W),constrainMinimumDeflection,constrainShearStress,constrainSurgeFrequency,constrainOutsideDiameter,isFeasible,isBest,execTime");
 

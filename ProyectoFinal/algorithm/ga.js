@@ -52,83 +52,55 @@ class GA {
 
     tournamentSelection(population,exception){
 
-        let sorted_population = new Array();
+        let sorted_population = Object.assign(population);
 
-        let k = 6;
-        let list = [];
-
-        for(let i=0;i<population.length;i++){
-            if(population[i].results.isFeasible)
-                sorted_population.push(population[i]);
-        }
-
-        if(sorted_population.length < k){
-            for(let i=sorted_population.length;i<k;i++){
-                let indexRandom = 0;
-                do{
-                     indexRandom = getRandomNumber(0,population.length,true);
-                }while(list.includes(indexRandom));
-
-                sorted_population.push(population[indexRandom]);
-            }
-        }
-        
 
 
         //Sort bacteria and chemotactic parameters C(i) in order of ascending cost j_health (higher means lower health)
-        sorted_population.sort((a,b) => {
-
-            
-            let isFeasibleA = this.isFeasible(a);
-            let isFeasibleB = this.isFeasible(b);
-
-            if(isFeasibleA){
-                console.log("FEASIBLE...");
-                console.log(JSON.stringify(a));
-            }
-            if(isFeasibleB){
-                console.log("FEASIBLE...");
-                console.log(JSON.stringify(b));
-            }
-
-            //1. Between 2 Feasible solutions,the one with the highest fitness value wins
-            if(isFeasibleA && isFeasibleB){
-                if( a.fitness < b.fitness)
-                    return -1;
-                if(a.fitness > b.fitness)
-                    return 1;
-            }
-
-            //2. If one solution is feasible and the other one is infeasible, the feasible wins
-            if(isFeasibleA && !isFeasibleB)
-                return -1;
-            else if(isFeasibleB && !isFeasibleA)
-                return 1;
-
-            //3. If both are infeasible, the one with the lowest sum of constraint violation is preferred
-            if(!isFeasibleA && !isFeasibleB){
-                let computeConstraintsViolationA = this.computeConstraintsViolation(a);
-                let computeConstraintsViolationB = this.computeConstraintsViolation(b);
-
-                if(computeConstraintsViolationA < computeConstraintsViolationB)
-                    return -1;
-                if(computeConstraintsViolationB < computeConstraintsViolationA)
-                    return 1;
-            }
-
-            return 0;
-        });
-
-        if(exception){
-            if(!exception.same(sorted_population[0]))
+        sorted_population.sort(this.minimizeCompareFunction);
+        
+        if (exception) {
+            if (!exception.same(sorted_population[0]))
                 return sorted_population[0];
-            else{
-                for(let i=1;i<sorted_population.length;i++)
-                    if(!exception.same(sorted_population[i]))
-                        return sorted_population[i];
-            }
+            else {
 
-            return population[population.length-1];
+                let rndBest = Math.random();
+                let indexRnd = -1;
+
+
+                let feasible_sorted_array= sorted_population.filter(p => p.results.isFeasible);
+
+                if (rndBest > 0.1 && feasible_sorted_array.length > 1) {
+
+                    /*let feasible_sorted_array = new Array();
+                    for(let i=0;i<sorted_population.length;i++)
+                        if(sorted_population[i].results.isFeasible)
+                            feasible_sorted_array.push(sorted_population[i]);*/
+                    //let feasible_sorted_array= sorted_population.filter(p => p.results.isFeasible);
+                    let tries = 0;
+                    do{
+                        indexRnd = getRandomNumber(1,feasible_sorted_array.length, true);
+                        tries++;
+                    }while(exception.same(feasible_sorted_array[indexRnd])
+                    && tries < 11);
+
+                    if(tries == 10)
+                        return sorted_population[indexRnd];
+
+                    return feasible_sorted_array[indexRnd];
+
+                } else {
+
+                    do {
+                        indexRnd = getRandomNumber(1, Math.floor(sorted_population.length / 2), true);
+                    }
+                    while (exception.same(sorted_population[indexRnd]))
+
+                    return sorted_population[indexRnd];
+                }
+
+                
+            }
         }
 
         return sorted_population[0];
@@ -166,21 +138,33 @@ class GA {
 
     offspring(p1,p2){
 
-        let c1 = Object.assign(new Gene(this.p,this.f), p1);
-        let c2 = Object.assign(new Gene(this.p,this.f), p2);
+        let c1 = this.createNewGene(p1.dimensionArray);
+        let c2 = this.createNewGene(p2.dimensionArray);
 
         c1.same = p1.same;
         c2.same = p1.same;
 
+        let children = [c1,c2];
         //offspring point
         let op = getRandomNumber(1,p1.dimensionArray.length,true);
+        let crossIndex = 1;
+        let crossIndex2 = 0;
+        for(let i=1;i<op;i++){
+             children[crossIndex].dimensionArray[i] = p1.dimensionArray[i];
+             children[crossIndex2].dimensionArray[i] = p2.dimensionArray[i];
 
-        for(let i=0;i<op;i++){
-            c1.dimensionArray[i] = p2.dimensionArray[i];
-            c2.dimensionArray[i] = p1.dimensionArray[i]; 
+             crossIndex = 1 - crossIndex;
+             crossIndex2 = 1 - crossIndex2;
         }
 
+
         return [c1,c2];
+    }
+
+    createNewGene(dimensionArray){
+        let g = new Gene(this.p,this.f);
+        g.dimensionArray = Object.assign([],dimensionArray);
+        return g;
     }
 
     mutate(population,pm,boundariesArray){
@@ -196,40 +180,31 @@ class GA {
         }
     }
 
-    isFeasible(bacteria){
+    minimizeCompareFunction(a, b) {
+        let fitnessIndex = a.dimensionArray.length - 1;
 
-        if(bacteria.fitness < 0)
-            return false;
+        let a_isFeasible = a.results.isFeasible;
+        let b_isFeasible = b.results.isFeasible;
 
-        let N = bacteria.dimensionArray[2];
-        let D = bacteria.dimensionArray[0];
-        let d = bacteria.dimensionArray[1];
-        
-        let g1_val = g1(N,D,d);
-        let g2_val = g2(D,d);
-        let g3_val = g3(N,D,d);
-        let g4_val = g4(D,d);
-
-        if( g1_val <= 0
-            && g2_val <= 0
-            && g3_val <= 0
-            && g4_val <= 0)
-            return true;
-
-        return false;
-    }
-
-    computeConstraintsViolation(bacteria){
-        let N = bacteria.dimensionArray[2];
-        let D = bacteria.dimensionArray[0];
-        let d = bacteria.dimensionArray[1];
-        
-        let g1_val = g1(N,D,d);
-        let g2_val = g2(D,d);
-        let g3_val = g3(N,D,d);
-        let g4_val = g4(D,d);
-
-        return Math.max(0,g1_val) + Math.max(0,g2_val) + Math.max(0,g3_val) + Math.max(0,g4_val);
+        if (a_isFeasible && b_isFeasible) {
+            if (a.fitness < b.fitness) {
+                return -1;
+            } else if (a.fitness > b.fitness) {
+                return 1;
+            }
+            return 0;
+        } else if (a_isFeasible && !b_isFeasible) {
+            return -1;
+        } else if (!a_isFeasible && b_isFeasible) {
+            return 1;
+        } else {
+            if (a.results.summation < b.results.summation) {
+                return -1;
+            } else if (a.results.summation > b.results.summation) {
+                return 1;
+            }
+            return 0;
+        }
     }
 
     getFeasibilityResults(springDataArray) {
@@ -281,22 +256,25 @@ class GA {
             this.evalFitnessAll(population);
 
             let children = [];
-            
+            let con = 0;
             while(children.length < population.length){
                 let p1 = this.tournamentSelection(population);
                 let p2 = this.tournamentSelection(population,p1);
                 //let p1 = this.rouletteSelection(population);
                 //let p2 = this.rouletteSelection(population,p1);
-
+                
                 let offspring = this.offspring(p1,p2);
 
                 children.push(offspring[0]);
                 children.push(offspring[1]);
+
+                //children.push(population[con]);
+                con++;
             }
 
             this.mutate(children,this.pm,this.boundariesArray);
 
-            population = children;
+            population = Object.assign([],children);
 
             
             let endTime = performance.now();

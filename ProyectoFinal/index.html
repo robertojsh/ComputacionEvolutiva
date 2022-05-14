@@ -43,7 +43,7 @@
           <input class="form-check-input" type="radio" name="functionSelected" value="paper" id="paper">
           <label class="form-check-label" for="spring">sin<sup>3</sup>(2πx) sin(2πy) / x<sup>3</sup>(x + y)</label>
         </div>
-        <div class="mt-3" id="springConstrains">
+        <div class="mt-3" id="paperConstrains">
           <span class="mt-4 mb-3" style="font-weight: bold;">Subject to:</span><br>
           <span>g<sub>1</sub>(x) = x<sub>1</sub><sup>2</sup> - x<sub>2</sub> + 1 ≤ 0</span><br>
           <span>g<sub>2</sub>(x) = 1 - x<sub>1</sub> + (x<sub>2</sub> - 4)<sup>2</sup> ≤ 0</span><br>
@@ -51,7 +51,7 @@
           <span>0 ≤ <b>x1</b> ≤ 10 </span><br>
           <span>0 ≤ <b>x2</b> ≤ 10 </span><br>
         </div>
-        <div class="mt-3" id="paperConstrains">
+        <div class="mt-3" id="springConstrains">
           <span class="mt-4 mb-3" style="font-weight: bold;">Subject to:</span><br>
           <span>g<sub>1</sub>(x) = 1 - (D<sup>3</sup>N / 71785d<sup>4</sup>) ≤ 0</span><br>
           <span>g<sub>2</sub>(x) = (4D<sup>2</sup>-dD / 12566(Dd<sup>3</sup>-d<sup>4</sup>)) + 1/5108d<sup>2</sup> - 1  ≤ 0</span><br>
@@ -82,19 +82,19 @@
           <span class="mt-4 mb-3" style="font-weight: bold;">Hyper-parameters:</span>
           <div class="input-group">
             <span class="input-group-text">S (# bacteria)</span>
-            <input type="text" class="form-control" id="S_bacteria" value="50">            
+            <input type="text" class="form-control" id="S_bacteria" value="100">            
           </div>
           <div class="input-group">
             <span class="input-group-text">Nc (# steps chemotaxis)</span>
-            <input type="text" class="form-control" id="Nc" value="20">
+            <input type="text" class="form-control" id="Nc" value="30">
           </div>
           <div class="input-group">
             <span class="input-group-text">Ns (# swims)</span>
-            <input type="text" class="form-control" id="Ns" value="4">
+            <input type="text" class="form-control" id="Ns" value="5">
           </div>
           <div class="input-group">
             <span class="input-group-text">Nre (# reproductions)</span>
-            <input type="text" class="form-control" id="Nre" value="6">
+            <input type="text" class="form-control" id="Nre" value="10">
           </div>
           <div class="input-group">
             <span class="input-group-text">Ned (# eliminations-dispersal)</span>
