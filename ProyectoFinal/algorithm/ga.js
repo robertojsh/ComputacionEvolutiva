@@ -10,36 +10,33 @@ class GA {
 
         this.compareFunction = compareFunction;
         this.constraintList = constraintList;
-        
+        this.generationList = new Array();
+
     }
 
-    generatePopulation(population_size, xl, xu) {
+    generatePopulation(population_size, boundariesArray) {
         let population = [];
 
         for (let i = 0; i < population_size; i++) {
 
-            let g = new Gene();
+            let g = new Gene(this.boundariesArray.length,this.f);
 
             for(let j=0;j < xl.length; j++)
-                g.position.push(xl[j] + (xu[j] - xl[j]) * Math.random());
+                g.dimensionArray.push(boundariesArray[j].lower + (boundariesArray[j].upper - boundariesArray[j].lower) * Math.random());
 
+            g.dimensionArray.push = Infinity;
+            g.results = this.getFeasibilityResults(g.dimensionArray);
             population.push(g);
         }
 
         return population;
     }
 
-    evalFitness(gene, f) {
-        gene.z = f(gene.position[0],gene.position[1],gene.position[2]);
+    evalFitness(gene) {
 
-        if(gene.z < best.z
-            && gene.z > 0
-            && this.isFeasible(gene)){
-            best = { d :gene.position[0], D: gene.position[1], N : gene.position[2] , z: gene.z };
-            report("d = " +best.d + ", D = " + best.D + ", N =   " + best.N +  " W = " + best.z);
-        }
+        gene.dimensionArray[gene.dimensionArray.length-1] = this.f(...gene.dimensionArray);
 
-        if(gene.z < 0) {
+        if(gene.dimensionArray[gene.dimensionArray.length-1] < 0) {
             gene.fitness = 1 + Math.abs(gene.z);
         }
         else {
@@ -48,9 +45,9 @@ class GA {
         return gene.fitness;
     }
 
-    evalFitnessAll(population, f) {
+    evalFitnessAll(population) {
         for (let i = 0; i < population.length; i++)
-            this.evalFitness(population[i], f);
+            this.evalFitness(population[i]);
     }
 
     tournamentSelection(population,exception){
@@ -118,24 +115,24 @@ class GA {
         c2.same = p1.same;
 
         //offspring point
-        let op = getRandomNumber(1,p1.position.length,true);
+        let op = getRandomNumber(1,p1.dimensionArray.length,true);
 
         for(let i=0;i<op;i++){
-            c1.position[i] = p2.position[i];
-            c2.position[i] = p1.position[i]; 
+            c1.dimensionArray[i] = p2.dimensionArray[i];
+            c2.dimensionArray[i] = p1.dimensionArray[i]; 
         }
 
         return [c1,c2];
     }
 
-    mutate(population,pm,xl,xu,yl,yu){
+    mutate(population,pm,boundariesArray){
 
         for(let i=0; i<population.length; i++){
 
-            for(let j=0;j<population[i].position.length;j++){
+            for(let j=0;j<population[i].dimensionArray.length;j++){
                 let r = Math.random();
                 if(r > pm)
-                    population[i].position[j] = (xl[j] + (xu[j] - xl[j]) * Math.random());
+                    population[i].dimensionArray[j] = (boundariesArray[j].lower + (boundariesArray[j].upper - boundariesArray[j].lower) * Math.random());
             }
         
         }
@@ -146,9 +143,9 @@ class GA {
         if(bacteria.fitness < 0)
             return false;
 
-        let N = bacteria.position[2];
-        let D = bacteria.position[1];
-        let d = bacteria.position[0];
+        let N = bacteria.dimensionArray[2];
+        let D = bacteria.dimensionArray[1];
+        let d = bacteria.dimensionArray[0];
         
         let g1_val = g1(N,D,d);
         let g2_val = g2(D,d);
@@ -165,9 +162,9 @@ class GA {
     }
 
     computeConstraintsViolation(bacteria){
-        let N = bacteria.position[2];
-        let D = bacteria.position[1];
-        let d = bacteria.position[0];
+        let N = bacteria.dimensionArray[2];
+        let D = bacteria.dimensionArray[1];
+        let d = bacteria.dimensionArray[0];
         
         let g1_val = g1(N,D,d);
         let g2_val = g2(D,d);
@@ -177,21 +174,53 @@ class GA {
         return Math.max(0,g1_val) + Math.max(0,g2_val) + Math.max(0,g3_val) + Math.max(0,g4_val);
     }
 
+    getFeasibilityResults(springDataArray) {
+        let resultObject = {};
+        let summation = 0;
+        let isFeasible = true;
+        let constrainFunction;
+        let result;
+
+        for (let i = 0; i < this.constraintList.length; i++) {
+            constrainFunction = this.constraintList[i];
+            result = constrainFunction(...springDataArray);
+            if (result > 0) {
+                isFeasible = false;
+            }
+            summation += Math.max(0, result);
+            resultObject[constrainFunction.name] = result;
+        }
+
+        resultObject["isFeasible"] = isFeasible;
+        resultObject["summation"] = summation;
+        return resultObject;
+    }
+
+    logGeneration(population, time) {
+        let generationObj = {
+            values: population,
+            bestSolutionIndex: 0,
+            executionTime: time,
+        };
+
+        this.generationList.push(generationObj);
+    }
+
+    getAllGenerations(){
+        return this.generationList;
+    }
 
     exec() {
 
-        let total_population = N;
+        let total_population = this.N;
         let iter_generations = 0;
 
-        let population = this.generatePopulation(total_population, xl, xu);
+        let population = this.generatePopulation(total_population, this.boundariesArray);
 
         do {
+            let startTime = performance.now();
 
-            this.evalFitnessAll(population,f);
-
-            if(updateFunction) {
-                updateFunction(iter_generations,population);
-            }
+            this.evalFitnessAll(population);
 
             let children = [];
 
@@ -205,32 +234,45 @@ class GA {
                 children.push(offspring[1]);
             }
 
-            this.mutate(children,pm,xl,xu);
+            this.mutate(children,this.pm,this.boundariesArray);
 
             population = children;
+
+            
+            let endTime = performance.now();
+
+
+            this.logGeneration(population, endTime - startTime);
 
             iter_generations++;
         }
         while (iter_generations < generations);
 
-        this.evalFitnessAll(population,f);
+        this.evalFitnessAll(population);
 
         return population;
     }
+
+    
 }
 
 class Gene {
-    constructor() {
-        this.position = new Array();        
-        this.z = 0;
+    constructor(p,f) {
+        this.dimensionArray = new Array();
+
+
+        this.f = f;
+
+        this.p = p;
+
         this.fitness = Infinity;
         this.relativeFitness=0;
     }
 
     same(g) {        
 
-        for(let i=0;i<this.position.length;i++){
-            if(this.position[i] != g.position[i])
+        for(let i=0;i<this.dimensionArray.length-1;i++){
+            if(this.dimensionArray[i] != g.dimensionArray[i])
                 return false;
         }
 
@@ -238,5 +280,3 @@ class Gene {
     }
 }
 
-
-best = { x: Infinity, y: Infinity, z : Infinity};

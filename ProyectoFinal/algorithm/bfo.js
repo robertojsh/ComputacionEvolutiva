@@ -301,7 +301,7 @@ class BFO {
 }
 
 class Bacteria {
-    constructor(p, boundariesArray, f, isFeasible) {
+    constructor(p, boundariesArray, f) {
         this.dimensionArray = new Array();
 
 
@@ -309,7 +309,6 @@ class Bacteria {
 
         this.p = p;
 
-        this.isFeasible = isFeasible;
 
         for (let i = 0; i < p; i++) {
             this.dimensionArray.push(this.randomParamValue(boundariesArray[i].lower, boundariesArray[i].upper));
