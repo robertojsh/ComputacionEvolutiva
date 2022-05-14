@@ -1,5 +1,5 @@
 class ES {
-  constructor(generations, variance, dimension, objectiveFunc, boundariesArray, mu, lambda, compareFunction, constrainList) { 
+  constructor(generations, variance, dimension, objectiveFunc, boundariesArray, mu, lambda, compareFunction, constrainList, physicalConstrainsList) { 
     this.generations = generations;
     this.variance = variance;
     this.stdDev = Math.sqrt(variance);
@@ -10,6 +10,7 @@ class ES {
     this.lambda = lambda;
     this.compareFunction = compareFunction;
     this.constraintFunctionsList = constrainList;
+    this.physicalConstrainsList = physicalConstrainsList;
     this.generationList = [];
   }
 
@@ -62,7 +63,7 @@ class ES {
   initializeIndividuals() {
     let individualsArray = new Array(this.mu);
     for(let i=0; i < this.mu; i++) {
-      individualsArray[i] = new Individual(this.dimension, this.stdDev, this.boundariesArray);      
+      individualsArray[i] = new IndividualEs(this.dimension, this.stdDev, this.boundariesArray);      
     }
     return individualsArray;
   }
@@ -78,7 +79,7 @@ class ES {
 
   createChild(parentOne, parentTwo) {
     // Intermediate
-    let child = new Individual(this.dimension, this.stdDev, this.boundariesArray);
+    let child = new IndividualEs(this.dimension, this.stdDev, this.boundariesArray);
     for(let i=0; i<this.dimension; i++) {
       child.dimensionArray[i] = (parentOne.dimensionArray[i] + parentTwo.dimensionArray[i]) / 2;
       child.stdDevArray[i] = (parentOne.stdDevArray[i] + parentTwo.stdDevArray[i]) / 2;
@@ -123,10 +124,18 @@ class ES {
     let constrainFunction;
     let result;
 
+    let physicalConstrainBroken = false;
+    for(let i=0; i<this.physicalConstrainsList.length; i++) {
+      physicalConstrainBroken = this.physicalConstrainsList[i](springDataArray);
+      if(physicalConstrainBroken) {
+        break;
+      }
+    }
+    
     for(let i=0; i<this.constraintFunctionsList.length; i++) {
-      constrainFunction = this.constraintFunctionsList[i];
+      constrainFunction = this.constraintFunctionsList[i];      
       result = constrainFunction(...springDataArray);
-      if(result > 0) {
+      if(result > 0 || physicalConstrainBroken) {
         isFeasible = false;
       }
       summation += Math.max(0, result);
@@ -156,7 +165,7 @@ class ES {
 
   boundariesArray: [ {upper:10, lower:-10} , ... ]
 */
-class Individual {
+class IndividualEs {
   constructor(dimension, stdDev, boundariesArray) {
     this.dimensionArray = [];
     this. stdDevArray = [];
