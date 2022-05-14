@@ -46,9 +46,10 @@ function startExec() {
   let boundariesArray;
   let dimension = 0;
   let compareFunction;
-  let constrainList;
+  let constrainList = [];
   let algorithmObject;
-  let physicalConstrains;
+  let physicalConstrains = [];
+  let ignoreConstrains = document.getElementById("checkIgnoreConstrains").checked;
 
   if(activeFunctionString === "paper") {
     activeFunc = paperFunction;
@@ -58,8 +59,10 @@ function startExec() {
     ];
     dimension = 2;
     compareFunction = maximizeCompareFunction;
-    constrainList = paperConstrains;
-    physicalConstrains = []
+    if(!ignoreConstrains) {
+      constrainList = paperConstrains;
+      physicalConstrains = [];
+    }
   } else {
     activeFunc = springWeight;
     boundariesArray = [
@@ -69,8 +72,10 @@ function startExec() {
     ];
     dimension = 3;
     compareFunction = minimizeCompareFunction;
-    constrainList = constrainsFunctionsList;
-    physicalConstrains = [areSpringMeasuresValid];
+    if(!ignoreConstrains) {
+      constrainList = constrainsFunctionsList;
+      physicalConstrains = [areSpringMeasuresValid];
+    }
   }
 
   if(algorithmSelected === "bfo") {
@@ -128,16 +133,25 @@ function startExec() {
     esObj.exec();
     algorithmObjectGlobal = esObj;
     algorithmObject = esObj;
-  } else {
+
+  } else if(algorithmSelected === "de") {
     //algorithmObjectGlobal = new DE();
+    let generations = parseInt(document.getElementById("generationsDe").value);
+    let cr = parseFloat(document.getElementById("cr").value);
+    let lambda = parseFloat(document.getElementById("lambdaDe").value);
+    let population = parseInt(document.getElementById("populationDe").value);
+
+    let deObj = new DE(generations, population, activeFunc, boundariesArray, dimension, cr, lambda, compareFunction, constrainList, physicalConstrains);
+    deObj.exec();
+    algorithmObjectGlobal = deObj;
+    algorithmObject = deObj;
   }
 
   if(activeFunctionString === "paper") {
     let generationHistory = algorithmObject.getAllGenerations();
     document.getElementById("generationId").value = generationHistory.length;
-    updateGraphic(generationHistory.length-1);
+    updateGraphic(generationHistory.length);
   }
-  console.log(algorithmObject);
   return algorithmObject;
 }
 
@@ -281,6 +295,16 @@ function updateAlgorithmUI(selectedAlgorithm) {
   }
 }
 
+function updateFunctionUI(functionSelected) {
+  if(functionSelected === "paper") {
+    document.getElementById("springConstrains").style.display = "none";
+    document.getElementById("paperConstrains").style.display = "";
+  } else {
+    document.getElementById("springConstrains").style.display = "";
+    document.getElementById("paperConstrains").style.display = "none";
+  }
+}
+
 window.onload = function() {
   
   let nextGenBtn = document.getElementById("nextGenBtn");
@@ -288,6 +312,7 @@ window.onload = function() {
   let genIdInput = document.getElementById("generationId");
   let playBtn = document.getElementById("playBtn");
   let algorithmsDropdown = document.getElementById("algorithmSelected");
+  let selectedFunctions = document.querySelectorAll('input[name="functionSelected"]');
 
   playBtn.addEventListener("click",play);
 
@@ -313,8 +338,15 @@ window.onload = function() {
     updateGraphic(parseInt(genIdInput.value));
   });
 
-  algorithmsDropdown.addEventListener("change", (event) => {
+  algorithmsDropdown.addEventListener("change", (event) => {   
     updateAlgorithmUI(event.target.value);
   });
+
+  for(const funct of selectedFunctions) {
+    funct.onclick = (e) => {
+      updateFunctionUI(e.target.value);
+    }
+  }
   updateAlgorithmUI(document.getElementById("algorithmSelected").value);
+  updateFunctionUI(document.querySelector('input[name="functionSelected"]:checked').value);  
 };
