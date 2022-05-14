@@ -21,11 +21,10 @@ class GA {
 
             let g = new Gene(this.boundariesArray.length,this.f);
 
-            for(let j=0;j < xl.length; j++)
+            for(let j=0;j < boundariesArray.length; j++)
                 g.dimensionArray.push(boundariesArray[j].lower + (boundariesArray[j].upper - boundariesArray[j].lower) * Math.random());
 
-            g.dimensionArray.push = Infinity;
-            g.results = this.getFeasibilityResults(g.dimensionArray);
+            g.dimensionArray[this.boundariesArray.length] = Infinity;
             population.push(g);
         }
 
@@ -35,12 +34,13 @@ class GA {
     evalFitness(gene) {
 
         gene.dimensionArray[gene.dimensionArray.length-1] = this.f(...gene.dimensionArray);
+        gene.results = this.getFeasibilityResults(gene.dimensionArray);
 
         if(gene.dimensionArray[gene.dimensionArray.length-1] < 0) {
-            gene.fitness = 1 + Math.abs(gene.z);
+            gene.fitness = 1 + Math.abs(gene.dimensionArray[gene.dimensionArray.length-1]);
         }
         else {
-            gene.fitness = 1 / (1 + gene.z);
+            gene.fitness = 1 / (1 + gene.dimensionArray[gene.dimensionArray.length-1]);
         }
         return gene.fitness;
     }
@@ -52,14 +52,44 @@ class GA {
 
     tournamentSelection(population,exception){
 
-        let sorted_population = Object.assign([], population);
+        let sorted_population = new Array();
+
+        let k = 6;
+        let list = [];
+
+        for(let i=0;i<population.length;i++){
+            if(population[i].results.isFeasible)
+                sorted_population.push(population[i]);
+        }
+
+        if(sorted_population.length < k){
+            for(let i=sorted_population.length;i<k;i++){
+                let indexRandom = 0;
+                do{
+                     indexRandom = getRandomNumber(0,population.length,true);
+                }while(list.includes(indexRandom));
+
+                sorted_population.push(population[indexRandom]);
+            }
+        }
+        
+
 
         //Sort bacteria and chemotactic parameters C(i) in order of ascending cost j_health (higher means lower health)
         sorted_population.sort((a,b) => {
 
-
+            
             let isFeasibleA = this.isFeasible(a);
             let isFeasibleB = this.isFeasible(b);
+
+            if(isFeasibleA){
+                console.log("FEASIBLE...");
+                console.log(JSON.stringify(a));
+            }
+            if(isFeasibleB){
+                console.log("FEASIBLE...");
+                console.log(JSON.stringify(b));
+            }
 
             //1. Between 2 Feasible solutions,the one with the highest fitness value wins
             if(isFeasibleA && isFeasibleB){
@@ -106,10 +136,38 @@ class GA {
         
     }
 
+    rouletteSelection(population,exception){
+
+        let totalFitness = 0;
+
+        for(let i=0;i<population.length;i++)
+            totalFitness += population[i].fitness;
+
+        for(let i=0;i<population.length;i++)
+            population[i].relativeFitness = population[i].fitness / totalFitness;
+            
+        let r = Math.random();
+
+        let f_sum = 0;
+
+        for(let i=0;i<population.length;i++){
+            
+            if(exception && population[i].same(exception))
+                continue;
+            
+            f_sum += population[i].relativeFitness;
+            if(f_sum >= r)
+                return population[i];
+        }
+
+        return population[population.length-1];
+    }
+
+
     offspring(p1,p2){
 
-        let c1 = Object.assign({}, p1);
-        let c2 = Object.assign({}, p2);
+        let c1 = Object.assign(new Gene(this.p,this.f), p1);
+        let c2 = Object.assign(new Gene(this.p,this.f), p2);
 
         c1.same = p1.same;
         c2.same = p1.same;
@@ -129,7 +187,7 @@ class GA {
 
         for(let i=0; i<population.length; i++){
 
-            for(let j=0;j<population[i].dimensionArray.length;j++){
+            for(let j=0;j<boundariesArray.length;j++){
                 let r = Math.random();
                 if(r > pm)
                     population[i].dimensionArray[j] = (boundariesArray[j].lower + (boundariesArray[j].upper - boundariesArray[j].lower) * Math.random());
@@ -144,8 +202,8 @@ class GA {
             return false;
 
         let N = bacteria.dimensionArray[2];
-        let D = bacteria.dimensionArray[1];
-        let d = bacteria.dimensionArray[0];
+        let D = bacteria.dimensionArray[0];
+        let d = bacteria.dimensionArray[1];
         
         let g1_val = g1(N,D,d);
         let g2_val = g2(D,d);
@@ -163,8 +221,8 @@ class GA {
 
     computeConstraintsViolation(bacteria){
         let N = bacteria.dimensionArray[2];
-        let D = bacteria.dimensionArray[1];
-        let d = bacteria.dimensionArray[0];
+        let D = bacteria.dimensionArray[0];
+        let d = bacteria.dimensionArray[1];
         
         let g1_val = g1(N,D,d);
         let g2_val = g2(D,d);
@@ -223,10 +281,12 @@ class GA {
             this.evalFitnessAll(population);
 
             let children = [];
-
+            
             while(children.length < population.length){
                 let p1 = this.tournamentSelection(population);
                 let p2 = this.tournamentSelection(population,p1);
+                //let p1 = this.rouletteSelection(population);
+                //let p2 = this.rouletteSelection(population,p1);
 
                 let offspring = this.offspring(p1,p2);
 
@@ -241,12 +301,11 @@ class GA {
             
             let endTime = performance.now();
 
-
             this.logGeneration(population, endTime - startTime);
-
+            
             iter_generations++;
         }
-        while (iter_generations < generations);
+        while (iter_generations < this.generations);
 
         this.evalFitnessAll(population);
 

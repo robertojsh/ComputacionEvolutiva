@@ -42,26 +42,26 @@ class BFO {
         for (let l = 0; l < this.Ned; l++) {
             //Step 3: Reproduction Loop
             for (let k = 0; k < this.Nre; k++) {
+                let startTime = performance.now();
                 //Step 4: Chemotaxis Loop
                 for (let j = 0; j < this.Nc; j++) {
 
-                    let startTime = performance.now();
+
 
                     this.chemotaxis();
-
-                    let endTime = performance.now();
-
-
-                    this.logGeneration(this.population, endTime - startTime);
-
                     //Step 5: if j < Nc continue
                 }
+
+                for(let i=0;i<this.population.length;i++)
+                    this.population[i].results = this.getFeasibilityResults(this.population[i].dimensionArray);
 
                 //Step 6: Reproduction
                 this.reproduction();
 
                 //Step 7: if K < Nre continue else stop
+                let endTime = performance.now();
 
+                this.logGeneration(this.population, endTime - startTime);
             }
 
             //Step 8: Elimination-dispersal: For i=1,2, S with prob Ped, eliminate and disperse each bacteria
@@ -77,7 +77,6 @@ class BFO {
     initialize() {
         for (let i = 0; i < this.S; i++) {
             this.population[i] = new Bacteria(this.p, this.boundariesArray, this.f);
-            this.population[i].results = this.getFeasibilityResults(this.population[i].dimensionArray);
         }
     }
 
@@ -118,8 +117,9 @@ class BFO {
             for (let m = 0; m < this.Ns; m++) {
                 //if J(i,j+1,k,l) < Jlast let Jlast = J(i,j+1,k,l) = new fitness
                 if (moved_bacteria.fitness < J_last
-                    && moved_bacteria.fitness > 0
-                    && this.getFeasibilityResults(moved_bacteria.dimensionArray).isFeasible) {
+                    //&& moved_bacteria.fitness > 0
+                    //&& this.getFeasibilityResults(moved_bacteria.dimensionArray).isFeasible
+                ) {
 
                     J_last = moved_bacteria.fitness;
 
@@ -232,7 +232,7 @@ class BFO {
 
 
         //Sort bacteria and chemotactic parameters C(i) in order of ascending cost j_health (higher means lower health)
-        this.population.sort(this.compareFunction);
+        this.population.sort(this.minimizeCompareFunction);
 
         //Half of the population dies and the other half splits
         //[b] The Sr bacteria with the highest J_health values dies and the remaining Sr splits
@@ -258,8 +258,34 @@ class BFO {
             if (rand_n <= this.Ped) {
                 //If a bacterium is eliminated, simply disperse another one to a random location
                 this.population[i] = new Bacteria(this.p, this.boundariesArray, this.f);
-                this.population[i].results = this.getFeasibilityResults(this.population[i].dimensionArray);
             }
+        }
+    }
+
+    minimizeCompareFunction(a, b) {
+        let fitnessIndex = a.dimensionArray.length - 1;
+
+        let a_isFeasible = a.results.isFeasible && (a.dimensionArray[fitnessIndex] > 0);
+        let b_isFeasible = b.results.isFeasible && (b.dimensionArray[fitnessIndex] > 0);
+
+        if (a_isFeasible && b_isFeasible) {
+            if (a.health < b.health) {
+                return -1;
+            } else if (a.health > b.health) {
+                return 1;
+            }
+            return 0;
+        } else if (a_isFeasible && !b_isFeasible) {
+            return -1;
+        } else if (!a_isFeasible && b_isFeasible) {
+            return 1;
+        } else {
+            if (a.results.summation < b.results.summation) {
+                return -1;
+            } else if (a.results.summation > b.results.summation) {
+                return 1;
+            }
+            return 0;
         }
     }
 
@@ -287,7 +313,7 @@ class BFO {
 
     logGeneration(population, time) {
         let generationObj = {
-            values: population,
+            values: Object.assign([], population),
             bestSolutionIndex: 0,
             executionTime: time,
         };
@@ -295,7 +321,7 @@ class BFO {
         this.generationList.push(generationObj);
     }
 
-    getAllGenerations(){
+    getAllGenerations() {
         return this.generationList;
     }
 }
@@ -315,7 +341,6 @@ class Bacteria {
         }
 
         this.computeObjectiveFunction();
-        this.dimensionArray.push = Infinity;
 
         this.fitness = Infinity;
 

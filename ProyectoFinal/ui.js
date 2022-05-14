@@ -104,6 +104,7 @@ function startExec() {
 
     bfoObj = new BFO(p,S_bacteria,Nc,Ns,Nre,Ned,Ped,Ci,boundariesArray,activeFunc,compareFunction,constrainList);
     bfoObj.exec();
+    algorithmObjectGlobal = bfoObj;
     algorithmObject = bfoObj;
   } else if(algorithmSelected === "ga") {
 
@@ -178,7 +179,7 @@ function drawPaperFunction(generationToUse) {
 }
 
 function runTestCSV() {
-  let runs = 30;
+  let runs = 1;
   let data = [];
   data.push("Iteration,Generation,WireDiameter(d),CoilDiameter(D),NumberOfCoils(N),Fitness(W),constrainMinimumDeflection,constrainShearStress,constrainSurgeFrequency,constrainOutsideDiameter,isFeasible,isBest,execTime");
 
