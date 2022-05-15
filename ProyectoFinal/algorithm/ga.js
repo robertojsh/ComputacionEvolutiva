@@ -232,11 +232,23 @@ class GA {
     logGeneration(population, time) {
         let generationObj = {
             values: population,
-            bestSolutionIndex: 0,
+            bestSolutionIndex: this.getBest(population),
             executionTime: time,
         };
 
         this.generationList.push(generationObj);
+    }
+
+    getBest(population){
+        let best = 0;
+        let zIndex = population.dimensionArray.length-1;
+
+        for(let i=1;i<population.length;i++){
+            if(population[i].dimensionArray[z] < population[best].dimensionArray[zIndex])
+                best = i;
+        }
+
+        return best;
     }
 
     getAllGenerations(){
