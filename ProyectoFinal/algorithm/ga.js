@@ -241,10 +241,10 @@ class GA {
 
     getBest(population){
         let best = 0;
-        let zIndex = population.dimensionArray.length-1;
+        let zIndex = population[best].dimensionArray.length-1;
 
         for(let i=1;i<population.length;i++){
-            if(population[i].dimensionArray[z] < population[best].dimensionArray[zIndex])
+            if(population[i].dimensionArray[zIndex] < population[best].dimensionArray[zIndex])
                 best = i;
         }
 
@@ -269,6 +269,9 @@ class GA {
 
             let children = [];
             let con = 0;
+
+            children.push(population.sort(this.minimizeCompareFunction)[0]);
+            children.push(population.sort(this.minimizeCompareFunction)[1]);
             while(children.length < population.length){
                 let p1 = this.tournamentSelection(population);
                 let p2 = this.tournamentSelection(population,p1);
