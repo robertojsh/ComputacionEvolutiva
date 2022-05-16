@@ -64,6 +64,7 @@ class GA {
                 return sorted_population[0];
             else {
                 return sorted_population[1];
+
             }
         }
 
