@@ -52,7 +52,7 @@ class GA {
 
     tournamentSelection(population,exception){
 
-        let sorted_population = Object.assign(population);
+        let sorted_population = Object.assign([],population);
 
 
 
@@ -63,43 +63,7 @@ class GA {
             if (!exception.same(sorted_population[0]))
                 return sorted_population[0];
             else {
-
-                let rndBest = Math.random();
-                let indexRnd = -1;
-
-
-                let feasible_sorted_array= sorted_population.filter(p => p.results.isFeasible);
-
-                if (rndBest > 0.1 && feasible_sorted_array.length > 1) {
-
-                    /*let feasible_sorted_array = new Array();
-                    for(let i=0;i<sorted_population.length;i++)
-                        if(sorted_population[i].results.isFeasible)
-                            feasible_sorted_array.push(sorted_population[i]);*/
-                    //let feasible_sorted_array= sorted_population.filter(p => p.results.isFeasible);
-                    let tries = 0;
-                    do{
-                        indexRnd = getRandomNumber(1,feasible_sorted_array.length, true);
-                        tries++;
-                    }while(exception.same(feasible_sorted_array[indexRnd])
-                    && tries < 11);
-
-                    if(tries == 10)
-                        return sorted_population[indexRnd];
-
-                    return feasible_sorted_array[indexRnd];
-
-                } else {
-
-                    do {
-                        indexRnd = getRandomNumber(1, Math.floor(sorted_population.length / 2), true);
-                    }
-                    while (exception.same(sorted_population[indexRnd]))
-
-                    return sorted_population[indexRnd];
-                }
-
-                
+                return sorted_population[1];
             }
         }
 
