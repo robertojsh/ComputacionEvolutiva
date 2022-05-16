@@ -72,11 +72,6 @@ class GA {
 
                 if (rndBest > 0.1 && feasible_sorted_array.length > 1) {
 
-                    /*let feasible_sorted_array = new Array();
-                    for(let i=0;i<sorted_population.length;i++)
-                        if(sorted_population[i].results.isFeasible)
-                            feasible_sorted_array.push(sorted_population[i]);*/
-                    //let feasible_sorted_array= sorted_population.filter(p => p.results.isFeasible);
                     let tries = 0;
                     do{
                         indexRnd = getRandomNumber(1,feasible_sorted_array.length, true);
